@@ -12,8 +12,10 @@
 
 using namespace std;
 
-void benchmarkSetupInstance(int inst, int n, double (*bounds)[2]);
-double benchmarkEvaluation(double *x);
-int benchmarkGetEvaluations();
+namespace benchmark {
+	void setup(char *instanceName, int n, int *m, double (*bounds)[2]);
+	void evaluate(double *x, double *fx);
+	int getEvaluations();
+}
 
 #endif /* BENCHMARK_H_ */

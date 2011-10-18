@@ -1,9 +1,9 @@
-CXXFLAGS =	-O3 -g -Wall -fmessage-length=0
-#CXXFLAGS = -g -Wall -fmessage-length=0
+#CXXFLAGS =	-O3 -g -Wall -fmessage-length=0
+CXXFLAGS = -g -Wall -fmessage-length=0
 CXX = g++ $(CXXFLAGS)
-OBJS =	randomlib.o benchmark.o compactdifferentialevolution.o rand.o util.o
+OBJS =	randomlib.o benchmark.o rand.o util.o mocde.o
 LIBS =
-IMPL1 = mocde
+EXE = mocderunner
 
 randomlib.o:
 	$(CXX) -c randomlib.c $(LIBS)
@@ -13,15 +13,15 @@ util.o:
 	$(CXX) -c util.cpp $(LIBS)
 benchmark.o:
 	$(CXX) -c benchmark.cpp $(LIBS)
-compactdifferentialevolution.o:
-	$(CXX) -c compactdifferentialevolution.cpp
+mocde.o:
+	$(CXX) -c mocde.cpp
 
-$(IMPL1).o:
-	$(CXX) -c $(IMPL1).cpp
-$(IMPL1): $(IMPL1).o $(OBJS)
-	$(CXX) -o $(IMPL1) $(IMPL1).o $(OBJS) $(LIBS)
+$(EXE).o:
+	$(CXX) -c $(EXE).cpp
+$(EXE): $(EXE).o $(OBJS)
+	$(CXX) -o $(EXE) $(EXE).o $(OBJS) $(LIBS)
 	
-all:	clean $(IMPL1)
+all:	clean $(EXE)
 
 clean:
-	rm -f *.o $(IMPL1)
+	rm -f *.o $(EXE)

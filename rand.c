@@ -95,7 +95,7 @@ double Gauss(double sigma)
     return ret_val;
 }
 
-double N(double m, double sigma)
+double normal(double m, double sigma)
 {
     return m + Gauss(sigma);
 }
