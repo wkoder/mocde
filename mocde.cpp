@@ -22,12 +22,17 @@ MultiObjectiveCompactDifferentialEvolution::~MultiObjectiveCompactDifferentialEv
 
 }
 
-void generateX(double *x, double *u, double *d, double (*bounds)[2], int n) {
+void ensureBounds(double *x, double (*bounds)[2], int n) {
 	for (int i = 0; i < n; i++) {
-		x[i] = normal(u[i], d[i]);
 		x[i] = max(x[i], bounds[i][0]);
 		x[i] = min(x[i], bounds[i][1]);
 	}
+}
+
+void generateX(double *x, double *u, double *d, double (*bounds)[2], int n) {
+	for (int i = 0; i < n; i++)
+		x[i] = normal(u[i], d[i]);
+	ensureBounds(x, bounds, n);
 }
 
 void printx(char *d, double *x, int n) {
@@ -73,6 +78,7 @@ double MultiObjectiveCompactDifferentialEvolution::solve(double *xb, int n, int 
 		
 		for (int i = 0; i < n; i++)
 			xoff[i] = xt[i] + F*(xr[i] - xs[i]);
+		ensureBounds(xoff, bounds, n);
 		
 		// Crossover
 		for (int i = 0; i < n; i++)

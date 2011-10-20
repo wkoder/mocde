@@ -20,42 +20,59 @@ using namespace benchmark;
 int evaluations = 0;
 void (*function)(double *x, double *fx) = NULL;
 
-void fsetup(void (*func)(double *x, double *fx), int real, int obj, double low, double up, double (*bounds)[2]) {
+void fsetup(void (*func)(double *x, double *fx), int real, int obj) {
 	function = func;
 	nreal = real;
 	nobj = obj;
+}
+
+void fsetup(void (*func)(double *x, double *fx), int real, int obj, double low, double up, double (*bounds)[2]) {
+	fsetup(func, real, obj);
 	for (int i = 0; i < nreal; i++) {
 		bounds[i][0] = low;
 		bounds[i][1] = up;
 	}
 }
 
+void fsetup(void (*func)(double *x, double *fx), int real, int obj, double fromlow, double tolow, double fromup, double toup, double (*bounds)[2]) {
+	fsetup(func, real, obj);
+	
+	bounds[0][0] = fromlow;
+	bounds[0][1] = fromup;
+	double dlow = (tolow - fromlow) / (nreal-1);
+	double dup = (toup - fromup) / (nreal-1);
+	for (int i = 1; i < nreal; i++) {
+		bounds[i][0] = bounds[i-1][0] + dlow;
+		bounds[i][1] = bounds[i-1][1] + dup;
+	}
+}
+
 void benchmark::setup(char *functionName, int real, int *obj, double (*bounds)[2]) {
 	evaluations = 0;
 	if (strcmp(functionName, "wfg1") == 0)
-		fsetup(wfg1, real, 2, 0, 100, bounds);
+		fsetup(wfg1, real, 2, 0, 0, 2, 2*real, bounds);
 	else if (strcmp(functionName, "wfg2") == 0)
-		fsetup(wfg2, real, 2, 0, 100, bounds);
+		fsetup(wfg2, real, 2, 0, 0, 2, 2*real, bounds);
 	else if (strcmp(functionName, "wfg6") == 0)
-		fsetup(wfg6, real, 2, 0, 100, bounds);
+		fsetup(wfg6, real, 2, 0, 0, 2, 2*real, bounds);
 	else if (strcmp(functionName, "dtlz1") == 0)
-		fsetup(dtlz1, real, 2, 0, 100, bounds);
+		fsetup(dtlz1, real, 2, 0, 1, bounds);
 	else if (strcmp(functionName, "dtlz2") == 0)
-		fsetup(dtlz2, real, 2, 0, 100, bounds);
+		fsetup(dtlz2, real, 2, 0, 1, bounds);
 	else if (strcmp(functionName, "r_dtlz2") == 0)
-		fsetup(r_dtlz2, real, 2, 0, 100, bounds);
+		fsetup(r_dtlz2, real, 2, 0, 1, bounds);
 	else if (strcmp(functionName, "dtlz3") == 0)
-		fsetup(dtlz3, real, 2, 0, 100, bounds);
-	else if (strcmp(functionName, "dtlz5im") == 0)
+		fsetup(dtlz3, real, 2, 0, 1, bounds);
+	else if (strcmp(functionName, "dtlz5im") == 0) // TODO
 		fsetup(dtlz5im, real, 2, 0, 100, bounds);
-	else if (strcmp(functionName, "dtlz7") == 0)
+	else if (strcmp(functionName, "dtlz7") == 0) // TODO
 		fsetup(dtlz7, real, 2, 0, 100, bounds);
 	else if (strcmp(functionName, "zdt1") == 0)
-		fsetup(zdt1, real, 2, 0, 100, bounds);
+		fsetup(zdt1, real, 2, 0, 1, bounds);
 	else if (strcmp(functionName, "zdt2") == 0)
-		fsetup(zdt2, real, 2, 0, 100, bounds);
+		fsetup(zdt2, real, 2, 0, 1, bounds);
 	else if (strcmp(functionName, "zdt3") == 0)
-		fsetup(zdt3, real, 2, 0, 100, bounds);
+		fsetup(zdt3, real, 2, 0, 1, bounds);
 //	else if (strcmp(functionName, "deb1") == 0)
 //		fsetup(deb1, real, 2, 0, 100, bounds);
 //	else if (strcmp(functionName, "deb2") == 0)
