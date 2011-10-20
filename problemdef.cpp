@@ -14,17 +14,17 @@
 //#include "ExampleProblems.h"
 //#include "TransFunctions.h"
 
-void AMOP5601(double *xreal, double *xbin, int **gene, double *obj, double *constr) {
-	AMOP5601(parsecFileName, xreal, obj);
-}
-
-void AMOP5201(double *xreal, double *xbin, int **gene, double *obj, double *constr) {
-	AMOP5201(parsecFileName, xreal, obj);
-}
-
-void AMOP5301(double *xreal, double *xbin, int **gene, double *obj, double *constr) {
-	AMOP5301(parsecFileName, xreal, obj);
-}
+//void AMOP5601(double *xreal, double *xbin, int **gene, double *obj, double *constr) {
+//	AMOP5601(parsecFileName, xreal, obj);
+//}
+//
+//void AMOP5201(double *xreal, double *xbin, int **gene, double *obj, double *constr) {
+//	AMOP5201(parsecFileName, xreal, obj);
+//}
+//
+//void AMOP5301(double *xreal, double *xbin, int **gene, double *obj, double *constr) {
+//	AMOP5301(parsecFileName, xreal, obj);
+//}
 
 //using namespace WFG::Toolkit;
 //using namespace WFG::Toolkit::Examples;
@@ -33,9 +33,12 @@ using std::vector;
 using namespace std;
 
 #define k_factor 1
-#define l_factor 1
+#define l_factor 10
 
-void wfg1(double *xreal, double *xbin, int **gene, double *obj, double *constr) {
+int nreal = 0;
+int nobj = 0;
+
+void wfg1(double *xreal, double *obj) {
 	unsigned i;
 	int K = k_factor * (nobj - 1); //# of position-related variables
 	int L = l_factor * 2; //# of distance-related variables
@@ -50,16 +53,13 @@ void wfg1(double *xreal, double *xbin, int **gene, double *obj, double *constr) 
 	for (int m = 0; m < nobj; ++m)
 		S[m] = 2 * (m + 1);
 
-	vector<double> fx = Problems::WFG1(z, K, nobj, S);
-
-	for (i = 0; i < fx.size(); ++i)
-		obj[i] = fx[i];
+//	vector<double> fx = Problems::WFG1(z, K, nobj, S);
+//
+//	for (i = 0; i < fx.size(); ++i)
+//		obj[i] = fx[i];
 }
 
-#define k_factor 1
-#define l_factor 10
-
-void wfg2(double *xreal, double *xbin, int **gene, double *obj, double *constr) {
+void wfg2(double *xreal, double *obj) {
 	unsigned i;
 
 	int K = k_factor * (nobj - 1); //# of position-related variables
@@ -75,16 +75,13 @@ void wfg2(double *xreal, double *xbin, int **gene, double *obj, double *constr) 
 	for (int m = 0; m < nobj; ++m)
 		S[m] = 1; //2*(m+1);
 
-	vector<double> fx = Problems::WFG2(z, K, nobj, S);
-
-	for (i = 0; i < fx.size(); ++i)
-		obj[i] = fx[i];
+//	vector<double> fx = Problems::WFG2(z, K, nobj, S);
+//
+//	for (i = 0; i < fx.size(); ++i)
+//		obj[i] = fx[i];
 }
 
-#define k_factor 1
-#define l_factor 10
-
-void wfg6(double *xreal, double *xbin, int **gene, double *obj, double *constr) {
+void wfg6(double *xreal, double *obj) {
 	unsigned i;
 	int K = k_factor * (nobj - 1); //# of position-related variables
 	int L = l_factor * 2; //# of distance-related variables
@@ -99,10 +96,10 @@ void wfg6(double *xreal, double *xbin, int **gene, double *obj, double *constr) 
 	for (int m = 0; m < nobj; ++m)
 		S[m] = 1; //2*(m+1);
 
-	vector<double> fx = Problems::WFG6(z, K, nobj, S);
-
-	for (i = 0; i < fx.size(); ++i)
-		obj[i] = fx[i];
+//	vector<double> fx = Problems::WFG6(z, K, nobj, S);
+//
+//	for (i = 0; i < fx.size(); ++i)
+//		obj[i] = fx[i];
 }
 
 /* Test problem DTLZ1
@@ -111,9 +108,7 @@ void wfg6(double *xreal, double *xbin, int **gene, double *obj, double *constr) 
  * # of objectives = M
  * # of constraints = 0
  */
-
-/*#define M  4*//* Num. objetivos */
-void dtlz1(double *xreal, double *xbin, int **gene, double *obj, double *constr) {
+void dtlz1(double *xreal, double *obj) {
 	int i = 0;
 	int j = 0;
 	int n = nreal;
@@ -121,7 +116,7 @@ void dtlz1(double *xreal, double *xbin, int **gene, double *obj, double *constr)
 
 	double g = 0;
 	for (i = n - k + 1; i <= n; i++)
-		g += pow(xreal[i - 1] - 0.5, 2) - cos(20 * PI * (xreal[i - 1] - 0.5));
+		g += pow(xreal[i - 1] - 0.5, 2) - cos(20 * M_PI * (xreal[i - 1] - 0.5));
 
 	g = 100 * (k + g);
 
@@ -145,9 +140,7 @@ void dtlz1(double *xreal, double *xbin, int **gene, double *obj, double *constr)
  * # of objectives = M
  * # of constraints = 0
  */
-/*#define M  4*//* Num. objetivos */
-
-void dtlz2(double *xreal, double *xbin, int **gene, double *obj, double *constr) {
+void dtlz2(double *xreal, double *obj) {
 	int M = nobj;
 	/*
 	 int K = nreal - M + 1;
@@ -166,10 +159,10 @@ void dtlz2(double *xreal, double *xbin, int **gene, double *obj, double *constr)
 		obj[m] = 1.0 + g;
 
 		for (i = 0; i < M - m - 1; ++i)
-			obj[m] *= cos(xreal[i] * PI / 2.0);
+			obj[m] *= cos(xreal[i] * M_PI / 2.0);
 
 		if (m > 0)
-			obj[m] *= sin(xreal[M - m - 1] * PI / 2.0);
+			obj[m] *= sin(xreal[M - m - 1] * M_PI / 2.0);
 
 //      obj[m] += g*0.01;
 	}
@@ -182,7 +175,7 @@ void dtlz2(double *xreal, double *xbin, int **gene, double *obj, double *constr)
 #define c2 (c+2*a)
 #define b1 (b/2)
 
-void r_dtlz2(double *x, double *xbin, int **gene, double *f, double *constr) {
+void r_dtlz2(double *x, double *f) {
 	int nx = nreal;
 	int n_obj = nobj;
 	///////////////////////
@@ -190,7 +183,6 @@ void r_dtlz2(double *x, double *xbin, int **gene, double *f, double *constr) {
 	int i = 0, j = 0;
 	int k = nx - n_obj + 1;
 	double g = 0;
-	double sum = 0;
 	//double z[nx],zz[nx],p[nx],psum[n_obj],M[nx][nx],lamda_l[nx];
 	double *z, *zz, *p, *psum, **M, *lamda_l;
 	double M_10D[10][10] = { { 0.0346, -0.7523, 0.3561, -0.2958, 0.4675, 0, 0, 0, 0, 0 }, { 0.8159, -0.0423, 0.4063, 0.3455, -0.2192, 0, 0,
@@ -294,11 +286,11 @@ void r_dtlz2(double *x, double *xbin, int **gene, double *f, double *constr) {
 	for (i = 1; i <= n_obj; i++) {
 		double ff = (1 + g);
 		for (j = n_obj - i; j >= 1; j--) {
-			ff *= cos(zz[j - 1] * PI / 2.0);
+			ff *= cos(zz[j - 1] * M_PI / 2.0);
 			psum[i - 1] = sqrt(pow(psum[i - 1], 2) + pow(p[j - 1], 2));
 		}
 		if (i > 1) {
-			ff *= sin(zz[(n_obj - i + 1) - 1] * PI / 2.0);
+			ff *= sin(zz[(n_obj - i + 1) - 1] * M_PI / 2.0);
 			psum[i - 1] = sqrt(pow(psum[i - 1], 2) + pow(p[(n_obj - i + 1) - 1], 2));
 		}
 
@@ -321,8 +313,7 @@ void r_dtlz2(double *x, double *xbin, int **gene, double *f, double *constr) {
  * # of objectives = M
  * # of constraints = 0
  */
-//k = nVars - nobj + 1
-void dtlz3(double *xreal, double *xbin, int **gene, double *obj, double *constr) {
+void dtlz3(double *xreal, double *obj) {
 	int M = nobj;
 	int nVars = nreal;
 	int k = nreal - nobj + 1;
@@ -331,7 +322,7 @@ void dtlz3(double *xreal, double *xbin, int **gene, double *obj, double *constr)
 
 	g = 0;
 	for (i = M - 1; i < nVars; ++i)
-		g += pow(xreal[i] - 0.5, 2) - cos(20 * PI * (xreal[i] - 0.5));
+		g += pow(xreal[i] - 0.5, 2) - cos(20 * M_PI * (xreal[i] - 0.5));
 
 	g = 100.0 * (k + g);
 
@@ -339,10 +330,10 @@ void dtlz3(double *xreal, double *xbin, int **gene, double *obj, double *constr)
 		obj[m] = 1.0 + g;
 
 		for (i = 0; i < M - m - 1; ++i)
-			obj[m] *= cos(xreal[i] * PI / 2.0);
+			obj[m] *= cos(xreal[i] * M_PI / 2.0);
 
 		if (m > 0)
-			obj[m] *= sin(xreal[M - m - 1] * PI / 2.0);
+			obj[m] *= sin(xreal[M - m - 1] * M_PI / 2.0);
 
 //      obj[m] += g*0.01;
 	}
@@ -350,7 +341,7 @@ void dtlz3(double *xreal, double *xbin, int **gene, double *obj, double *constr)
 
 #define I 3
 
-void dtlz5im(double *x, double *xbin, int **gene, double *obj, double *constr) {
+void dtlz5im(double *x, double *obj) {
 	double g, t;
 	double theta[nobj];
 	int i, m;
@@ -361,9 +352,9 @@ void dtlz5im(double *x, double *xbin, int **gene, double *obj, double *constr) {
 
 	/* Compute metavariable vector theta */
 	for (i = 0; i < I - 1; i++)
-		theta[i] = x[i] * PI / 2.0;
+		theta[i] = x[i] * M_PI / 2.0;
 
-	t = PI / (4.0 * (1.0 + g));
+	t = M_PI / (4.0 * (1.0 + g));
 	for (i = I - 1; i < nobj - 1; i++)
 		theta[i] = t * (1 + 2 * g * x[i]);
 
@@ -391,7 +382,7 @@ void dtlz5im(double *x, double *xbin, int **gene, double *obj, double *constr) {
  * # of objectives = M
  * # of constraints = 0
  */
-void dtlz7(double *xreal, double *xbin, int **gene, double *obj, double *constr) {
+void dtlz7(double *xreal, double *obj) {
 	int i;
 	double h, g;
 	int M = nobj;
@@ -411,7 +402,7 @@ void dtlz7(double *xreal, double *xbin, int **gene, double *obj, double *constr)
 	/* Compute h */
 	h = 0.0;
 	for (i = 0; i < M - 1; ++i)
-		h += (obj[i] / (1 + g)) * (1 + sin(3 * PI * obj[i]));
+		h += (obj[i] / (1 + g)) * (1 + sin(3 * M_PI * obj[i]));
 	h = M - h;
 
 	obj[M - 1] = (1 + g) * h;
@@ -436,8 +427,7 @@ void dtlz7(double *xreal, double *xbin, int **gene, double *obj, double *constr)
  # of objectives = 2
  # of constraints = 0
  */
-
-void zdt1(double *xreal, double *xbin, int **gene, double *obj, double *constr) {
+void zdt1(double *xreal, double *obj) {
 	double f1, f2, g, h;
 	int i;
 	f1 = xreal[0];
@@ -460,7 +450,7 @@ void zdt1(double *xreal, double *xbin, int **gene, double *obj, double *constr) 
  # of objectives = 2
  # of constraints = 0
  */
-void zdt2(double *xreal, double *xbin, int **gene, double *obj, double *constr) {
+void zdt2(double *xreal, double *obj) {
 	double f1, f2, g, h;
 	int i;
 	f1 = xreal[0];
@@ -483,7 +473,7 @@ void zdt2(double *xreal, double *xbin, int **gene, double *obj, double *constr) 
  # of objectives = 2
  # of constraints = 0
  */
-void zdt3(double *xreal, double *xbin, int **gene, double *obj, double *constr) {
+void zdt3(double *xreal, double *obj) {
 	double f1, f2, g, h;
 	int i;
 	f1 = xreal[0];
@@ -493,7 +483,7 @@ void zdt3(double *xreal, double *xbin, int **gene, double *obj, double *constr) 
 	}
 	g = 9.0 * g / 29.0;
 	g += 1.0;
-	h = 1.0 - sqrt(f1 / g) - (f1 / g) * sin(10.0 * PI * f1);
+	h = 1.0 - sqrt(f1 / g) - (f1 / g) * sin(10.0 * M_PI * f1);
 	f2 = g * h;
 	obj[0] = f1;
 	obj[1] = f2;

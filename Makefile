@@ -1,7 +1,7 @@
 #CXXFLAGS =	-O3 -g -Wall -fmessage-length=0
 CXXFLAGS = -g -Wall -fmessage-length=0
 CXX = g++ $(CXXFLAGS)
-OBJS =	randomlib.o benchmark.o rand.o util.o mocde.o
+OBJS =	randomlib.o benchmark.o rand.o util.o mocde.o problemdef.o
 LIBS =
 EXE = mocderunner
 
@@ -11,6 +11,8 @@ rand.o:
 	$(CXX) -c rand.c $(LIBS)
 util.o:
 	$(CXX) -c util.cpp $(LIBS)
+problemdef.o:
+	$(CXX) -c problemdef.cpp $(LIBS)
 benchmark.o:
 	$(CXX) -c benchmark.cpp $(LIBS)
 mocde.o:

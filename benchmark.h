@@ -13,7 +13,7 @@
 using namespace std;
 
 namespace benchmark {
-	void setup(char *instanceName, int n, int *m, double (*bounds)[2]);
+	void setup(char *instanceName, int nreal, int *nobj, double (*bounds)[2]);
 	void evaluate(double *x, double *fx);
 	int getEvaluations();
 }
