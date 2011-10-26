@@ -7,12 +7,18 @@
 
 #include <math.h>
 #include <stdio.h>
+#include <iostream>
 
 #include "mocde.h"
 #include "rand.h"
 #include "randomlib.h"
 #include "benchmark.h"
 #include "util.h"
+
+#include "moead/algorithm.h"
+
+#undef EPS
+#define EPS 1e-9
 
 MultiObjectiveCompactDifferentialEvolution::MultiObjectiveCompactDifferentialEvolution() {
 
@@ -125,25 +131,79 @@ double MultiObjectiveCompactDifferentialEvolution::solve(double *xb, int n, int 
 namespace mo {
 	void (*mof)(double *x, double *fx);
 	int N, M;
-	double *L, *fx;
+	double *L, *fx, *ideal;
 	
 	double chebyshev(double *x) {
-		double sum = 0;
+		double result = -1e-30;
 		mof(x, fx);
-		for (int i = 0; i < N; i++)
-			sum += fx[i] * L[i];
-		return sum;
+		for (int i = 0; i < N; i++) {
+			//sum += fx[i] * L[i];
+			double diff = ideal[i] == 1e30 ? 0 : fabs(fx[i] - ideal[i]);
+			double eval = (L[i] < EPS ? EPS : L[i]) * diff;
+			if (eval > result)
+				result = eval;
+		}
+		return result;
 	}
 }
 
-int MultiObjectiveCompactDifferentialEvolution::solve(double **xb, double **fxb, int n, int m, int maxEvaluations, int populationSize, double CR,
+int MultiObjectiveCompactDifferentialEvolution::solve(double **xb, double **fxb, int nreal, int nobj, int maxEvaluations, int populationSize, double CR,
 				double F, double randomSeed, double (*bounds)[2], void (*function)(double *x, double *fx)) {
+	
+	if (true) {
+		double **L = util::createMatrix(populationSize, nobj);
+		char filename[1024];
+		sprintf(filename, "moead/W%dD.dat", nobj);
+		
+		ifstream file(filename);
+		if (!file.is_open()) {
+			cout << "File " << filename << " not found.\n";
+			exit(-1);
+		}
+		for (int i = 0; i < populationSize; i++)
+			for (int j = 0; j < nobj; j++)
+				file >> L[i][j];
+		file.close();
+//		if (nobj == 2) {
+//			double dx = 1.0 / (populationSize - 1);
+//			for (int i = 0; i < populationSize; i++) {
+//					L[i] = new double[2];
+//					if (i % 2 == 0)
+//						L[i][0] = i/2 * dx;
+//					else
+//						L[i][0] = L[i-1][1];
+//					L[i][1] = 1 - L[i][0];
+//			}
+//		} else if (nobj == 3) {
+//		} else {
+//			cout << "Invalid number of objectives " << nobj << "\n";
+//			exit(1);
+//		}
+		
+		seed = 177;
+		rnd_uni_init = 90.0;
+		lowBound = 0;
+		uppBound = 1;
+		
+		CMOEAD MOEAD;
+		int niche = nobj == 2 ? 100 : 150;
+		MOEAD.load_parameter(populationSize, maxEvaluations/populationSize, niche, niche/10, F);
+		MOEAD.exec_emo(xb, fxb, L);
+		
+		util::destroyMatrix(&L, populationSize);
+		
+		return populationSize;
+	}
+	
 	using namespace mo;
-	N = n;
-	M = m;
+	N = nreal;
+	M = nobj;
 	mof = function;
 	L = new double[M];
 	fx = new double[M];
+	ideal = new double[M];
+	for (int i = 0; i < M; i++)
+		ideal[i] = 1e30;
 
 	double dx = 1.0 / (populationSize - 1);
 	for (int i = 0; i < populationSize; i++) {
@@ -151,8 +211,12 @@ int MultiObjectiveCompactDifferentialEvolution::solve(double **xb, double **fxb,
 		L[1] = 1 - L[0];
 		solve(xb[i], N, maxEvaluations/populationSize, populationSize, CR, F, randomSeed, bounds, chebyshev);
 		function(xb[i], fxb[i]);
+		for (int j = 0; j < M; j++)
+			if (ideal[j] > fxb[i][j])
+				ideal[j] = fxb[i][j];
 	}
 
+	delete [] ideal;
 	delete [] L;
 	delete [] fx;
 	return populationSize;

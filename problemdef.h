@@ -8,9 +8,13 @@
 #ifndef PROBLEMDEF_H_
 #define PROBLEMDEF_H_
 
-extern int nreal;
-extern int nobj;
+//extern int nreal;
+//extern int nobj;
 
+void deb2(double *xreal, double *obj);
+void deb3(double *xreal, double *obj);
+void fonseca2(double *xreal, double *obj);
+void kursawe(double *xreal, double *obj);
 void wfg1(double *xreal, double *obj);
 void wfg2(double *xreal, double *obj);
 void wfg6(double *xreal, double *obj);
@@ -23,5 +27,6 @@ void dtlz7(double *xreal, double *obj);
 void zdt1(double *xreal, double *obj);
 void zdt2(double *xreal, double *obj);
 void zdt3(double *xreal, double *obj);
+
 
 #endif /* PROBLEMDEF_H_ */

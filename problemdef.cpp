@@ -9,6 +9,7 @@
 //#include "global.h"
 #include "rand.h"
 #include "problemdef.h"
+#include "moead/global.h"
 
 //// Toolkit includes. //////////////////////////////////////////////////////
 //#include "ExampleProblems.h"
@@ -35,11 +36,75 @@ using namespace std;
 #define k_factor 1
 #define l_factor 10
 
-int nreal = 0;
-int nobj = 0;
+//int nreal = 0;
+//int nobj = 0;
+
+void deb2(double *xreal, double *obj) {
+	double g;
+	double h;
+	double f1;
+
+	f1 = xreal[0];
+	g = 1 + 10 * xreal[1];
+	h = 1 - pow((f1 / g), 2) - (f1 / g) * sin(12 * M_PI * f1);
+
+	obj[0] = f1;
+	obj[1] = g * h;
+}
+
+void deb3(double *xreal, double *obj) {
+	double g;
+	double h;
+	double f1;
+	double alfa;
+	double beta;
+	double seno;
+	double pi = 3.1415926535;
+	double argumento;
+	double q;
+
+	alfa = 10;
+	q = 10;
+	beta = 1;
+
+	argumento = q * pi * xreal[0];
+	seno = sin(argumento);
+	f1 = 1 - exp(-4 * xreal[0]) * pow(seno, 4);
+	g = 1 + xreal[1] * xreal[1];
+	if (f1 <= beta * g) {
+		h = 1 - pow((f1 / (beta * g)), alfa);
+	} else {
+		h = 0;
+	}
+
+	obj[0] = f1;
+	obj[1] = g * h;
+}
+
+void fonseca2(double *xreal, double *obj) {
+	double s1, s2;
+	s1 = s2 = 0.0;
+	for (int i = 0; i < nreal; i++) {
+		s1 += pow((xreal[i] - (1.0 / sqrt((double) nreal))), 2.0);
+		s2 += pow((xreal[i] + (1.0 / sqrt((double) nreal))), 2.0);
+	}
+
+	obj[0] = 1.0 - exp(-s1);
+	obj[1] = 1.0 - exp(-s2);
+}
+
+void kursawe(double *xreal, double *obj) {
+	double res1, res2;
+	res1 = -0.2 * sqrt((xreal[0] * xreal[0]) + (xreal[1] * xreal[1]));
+	res2 = -0.2 * sqrt((xreal[1] * xreal[1]) + (xreal[2] * xreal[2]));
+	obj[0] = -10.0 * (exp(res1) + exp(res2));
+	obj[1] = 0.0;
+	for (int i = 0; i < 3; i++)
+		obj[1] += pow(fabs(xreal[i]), 0.8) + 5.0 * sin(pow(xreal[i], 3.0));
+}
 
 void wfg1(double *xreal, double *obj) {
-	unsigned i;
+//	unsigned i;
 	int K = k_factor * (nobj - 1); //# of position-related variables
 	int L = l_factor * 2; //# of distance-related variables
 
@@ -60,7 +125,7 @@ void wfg1(double *xreal, double *obj) {
 }
 
 void wfg2(double *xreal, double *obj) {
-	unsigned i;
+//	unsigned i;
 
 	int K = k_factor * (nobj - 1); //# of position-related variables
 	int L = l_factor * 2; //# of distance-related variables
@@ -82,7 +147,7 @@ void wfg2(double *xreal, double *obj) {
 }
 
 void wfg6(double *xreal, double *obj) {
-	unsigned i;
+//	unsigned i;
 	int K = k_factor * (nobj - 1); //# of position-related variables
 	int L = l_factor * 2; //# of distance-related variables
 
