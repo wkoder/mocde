@@ -55,7 +55,7 @@ int main(int argc,char *argv[])
 				MOEAD.load_parameter();
 				MOEAD.exec_emo(run);
 			}
-			printf("\n");
+			printf(endl);
 		}
 	}
 	return 0;

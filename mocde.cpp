@@ -17,9 +17,6 @@
 
 #include "moead/algorithm.h"
 
-#undef EPS
-#define EPS 1e-9
-
 MultiObjectiveCompactDifferentialEvolution::MultiObjectiveCompactDifferentialEvolution() {
 
 }
@@ -73,7 +70,7 @@ void shuffle(int *x, int n) {
 }
 
 double MultiObjectiveCompactDifferentialEvolution::chebyshevScalarizing(double *fx, double *namda) {
-	double max = -1e30;
+	double max = -INF;
 
 	for (int n = 0; n < nobj; n++) {
 		double diff = fabs(fx[n] - ideal[n]);
@@ -173,7 +170,7 @@ void MultiObjectiveCompactDifferentialEvolution::updateIdeal(double *fx) {
 
 void MultiObjectiveCompactDifferentialEvolution::initSubproblems(double **L) {
 	for (int i = 0; i < nobj; i++)
-		ideal[i] = 1e30;
+		ideal[i] = INF;
 	for (int i = 0; i < populationSize; i++)
 		utility[i] = 1.0;
 	
@@ -261,19 +258,20 @@ void MultiObjectiveCompactDifferentialEvolution::mutation(Individual *ind, doubl
 void MultiObjectiveCompactDifferentialEvolution::updateSubproblem(Individual *ind, int subproblemId, int type) {
 	int time = 0;
 	int size = type == 1 ? nicheSize : populationSize; // From neighborhood or from the whole population
-	int perm[size];
-	for (int i = 0; i < size; i++)
-		perm[i] = i;
-	shuffle(perm, size); // Shuffle the permutation
+//	int perm[size];
+//	for (int i = 0; i < size; i++)
+//		perm[i] = i;
+//	shuffle(perm, size); // Shuffle the permutation - WTF? Not needed, I think it was replaced by tourSelection()
 
 	for (int i = 0; i < size; i++) {
 		// Pick a subproblem to update
-		int k = type == 1 ? subproblems[subproblemId]->table[perm[i]] : perm[i];
+//		int k = type == 1 ? subproblems[subproblemId]->table[perm[i]] : perm[i];
+		int k = type == 1 ? subproblems[subproblemId]->table[i] : i;
 
 		// Calculate the values of objective function regarding the current subproblem
 		double f1 = chebyshevScalarizing(subproblems[k]->indiv->fx, subproblems[k]->namda);
 		double f2 = chebyshevScalarizing(ind->fx, subproblems[k]->namda);
-//		cout << f2 << " < " << f1 << " = " << (f2<fMultiObjectiveCompactDifferentialEvolution::solve1) << "\n";
+//		cout << f2 << " < " << f1 << " = " << (f2<fMultiObjectiveCompactDifferentialEvolution::solve1) << endl;
 		if (f2 < f1) {
 			subproblems[k]->indiv->copy(ind);
 			time++;
@@ -290,11 +288,11 @@ void MultiObjectiveCompactDifferentialEvolution::computeUtility() {
 		double f1 = chebyshevScalarizing(subproblems[n]->indiv->fx, subproblems[n]->namda);
 		double f2 = chebyshevScalarizing(subproblems[n]->saved->fx, subproblems[n]->namda);
 		if (f1 > f2) {
-//			cout << "ERROR! f1: " << f1 << ", f2: " << f2 << "\n";
+//			cout << "ERROR! f1: " << f1 << ", f2: " << f2 << endl;
 //			exits(-1);
 		}
+		
 		double delta = (f2 - f1) / f2;
-		//double delta = (f2 - f1);
 //		cout << utility[n] << " -> ";
 		if (delta > 0.001) {
 			utility[n] = 1.0;
@@ -307,7 +305,7 @@ void MultiObjectiveCompactDifferentialEvolution::computeUtility() {
 		subproblems[n]->saved->copy(subproblems[n]->indiv);
 //		cout << utility[n] << " (" << delta << "), ";
 	}
-//	cout << "\n";
+//	cout << endl;
 }
 
 int MultiObjectiveCompactDifferentialEvolution::tourSelection(int *order, int depth) {
@@ -395,7 +393,7 @@ int MultiObjectiveCompactDifferentialEvolution::solve(double **xb, double **fxb,
 		while (benchmark::getEvaluations() < maxEvaluations) {
 //			printx("x", subproblems[0]->indiv->x, nreal);
 //			printx("xs", subproblems[0]->saved->x, nreal);
-//			cout << "\n";
+//			cout << endl;
 			
 			int orderSize = tourSelection(order, 10);
 			for (int i = 0; i < orderSize; i++) {
@@ -422,7 +420,7 @@ int MultiObjectiveCompactDifferentialEvolution::solve(double **xb, double **fxb,
 			
 //			for (int i = 0; i < nobj; i++)
 //				cout << ideal[i] << " ";
-//			cout << "\n";
+//			cout << endl;
 			
 			generation++;
 			if (generation % 50 == 0) // Every 50 generations

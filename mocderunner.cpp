@@ -8,13 +8,47 @@
 #include <stdlib.h>
 #include <string>
 #include <iostream>
+#include <iomanip>
 #include <fstream>
+#include <math.h>
 
 #include "mocde.h"
 #include "benchmark.h"
 #include "util.h"
 
 using namespace std;
+
+void printStats(double *x, int n, int width, int precision) {
+	for (int i = 0; i < n; i++)
+		cout << setw(width) << setiosflags(ios::fixed) << setprecision(precision) << x[i] << " ";
+	cout << endl;
+}
+
+void printStats(double **x, int r, int c) {
+	double avg[c];
+	double std[c];
+	double stdr[c];
+	
+	for (int j = 0; j < c; j++) {
+		avg[j] = 0;
+		for (int i = 0; i < r; i++)
+			avg[j] += x[i][j];
+		
+		avg[j] /= r;
+		std[j] = 0;
+		for (int i = 0; i < r; i++)
+			std[j] += (x[i][j] - avg[j]) * (x[i][j] - avg[j]);
+		std[j] = sqrt(std[j] / r);
+		stdr[j] = avg[j] < EPS ? 0 : std[j] * 100 / avg[j];
+	}
+	
+	int precision = 3;
+	int width = precision + 4;
+	printStats(avg, c, width, precision);
+	printStats(std, c, width, precision);
+	printStats(stdr, c, width, precision);
+	cout << endl;
+}
 
 void showUsage(char *app) {
 	cout << "Usage:\n";
@@ -78,7 +112,11 @@ int main(int argc, char **argv) {
 	} else
 		cout << "Cannot open file " << argv[4];
 	
-	cout << "Evaluations: " << benchmark::getEvaluations() << "\n";
+	cout << "Evaluations: " << benchmark::getEvaluations() << endl;
+//	cout << "x* stats:\n";
+//	printStats(xs, populationSize, nreal);
+//	cout << "f(x*) stats:\n";
+//	printStats(fxs, populationSize, nobj);
 	
 	util::destroyMatrix(&xs, populationSize);
 	util::destroyMatrix(&fxs, populationSize);

@@ -12,12 +12,11 @@
 
 #include "benchmark.h"
 #include "problemdef.h"
+#include "util.h"
 #include "moead/cec09.h"
 #include "moead/global.h"
 
 using namespace benchmark;
-
-#define INF 1e20
 
 int nobj = 0;
 int nreal = 0;
@@ -153,7 +152,7 @@ void benchmark::evaluate(double *x, double *fx) {
 	double x2[nreal];
 	for (int i = 0; i < nreal; i++) {
 		if (x[i] < 0 || x[i] > 1)
-			cerr << "SHITTTTTTTT! Value: " << x[i] << "\n";
+			cerr << "SHITTTTTTTT! Value: " << x[i] << endl;
 		x2[i] = xbounds[i][0] + x[i]*(xbounds[i][1] - xbounds[i][0]);
 	}
 	function(x2, fx);

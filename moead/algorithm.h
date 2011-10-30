@@ -90,7 +90,7 @@ void CMOEAD::init_population() {
 			readf >> sub.namda[j];
 			//printf("%f ", sub.namda[j]);
 		}
-		//printf("\n"); getchar();
+		//printf(endl); getchar();
 
 		// Save in the population
 		population.push_back(sub);
@@ -197,7 +197,7 @@ void CMOEAD::comp_utility() {
 		population[n].saved = population[n].indiv;
 //		cout << utility[n] << " (" << delta << "), ";
 	}
-//	cout << "\n";
+//	cout << endl;
 }
 
 void CMOEAD::update_problem(CIndividual &indiv, int &id, int &type) {
@@ -372,7 +372,7 @@ void CMOEAD::exec_emo(double **x, double **fx, double **L) {
 		evol_population();
 //		for (int i = 0; i < nobj; i++)
 //			cout << idealpoint[i] << " ";
-//		cout << "\n";
+//		cout << endl;
 		gen++;
 		if (gen % 50 == 0) {
 			comp_utility();
@@ -424,7 +424,7 @@ void CMOEAD::save_front(char saveFilename[1024]) {
 	for (int n = 0; n < pops; n++) {
 		for (int k = 0; k < nobj; k++)
 			fout << population[n].indiv.y_obj[k] << "  ";
-		fout << "\n";
+		fout << endl;
 	}
 	fout.close();
 }
@@ -436,7 +436,7 @@ void CMOEAD::save_pos(char saveFilename[1024]) {
 	for (int n = 0; n < pops; n++) {
 		for (int k = 0; k < nreal; k++)
 			fout << population[n].indiv.x_var[k] << "  ";
-		fout << "\n";
+		fout << endl;
 	}
 	fout.close();
 }
