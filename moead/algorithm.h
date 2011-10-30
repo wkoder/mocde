@@ -186,6 +186,7 @@ void CMOEAD::comp_utility() {
 		f2 = fitnessfunction(population[n].saved.y_obj, population[n].namda);
 		delta = (f2 - f1) / f2;
 		//delta = (f2 - f1);
+//		cout << utility[n] << " -> ";
 		if (delta > 0.001) {
 			utility[n] = 1.0;
 		} else {
@@ -194,7 +195,9 @@ void CMOEAD::comp_utility() {
 			utility[n] = (0.95 + 0.05 * delta / 0.001) * utility[n];
 		}
 		population[n].saved = population[n].indiv;
+//		cout << utility[n] << " (" << delta << "), ";
 	}
+//	cout << "\n";
 }
 
 void CMOEAD::update_problem(CIndividual &indiv, int &id, int &type) {
@@ -360,20 +363,22 @@ void CMOEAD::exec_emo(double **x, double **fx, double **L) {
 	// initialization
 	nfes = 0;
 	
-
-	//init_population(L);
-	init_population();
+	init_population(L);
+//	init_population();
 	init_neighbourhood();
 
 	int gen = 0;
 	while (nfes < 300000) {
 		evol_population();
+//		for (int i = 0; i < nobj; i++)
+//			cout << idealpoint[i] << " ";
+//		cout << "\n";
 		gen++;
 		if (gen % 50 == 0) {
 			comp_utility();
 		}
 	}
-
+	
 	for (int i = 0; i < pops; i++) {
 		for (int j = 0; j < nreal; j++)
 			x[i][j] = population[i].indiv.x_var[j];

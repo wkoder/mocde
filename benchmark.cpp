@@ -144,9 +144,6 @@ void benchmark::setup(char *functionName, int real, int *obj, double (*bounds)[2
 		exit(EXIT_FAILURE);
 	}
 	
-	for (int i = 0; i < nreal; i++)
-		cout << xbounds[i][0] << " : " << xbounds[i][1] << "\n";
-
 	*obj = nobj;
 }
 
