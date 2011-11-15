@@ -149,15 +149,18 @@ void benchmark::setup(char *functionName, int real, int *obj, double (*bounds)[2
 void benchmark::evaluate(double *x, double *fx) {
 	evaluations++;
 
-	double x2[nreal];
-	for (int i = 0; i < nreal; i++) {
-		if (x[i] < 0 || x[i] > 1)
-			cerr << "SHITTTTTTTT! Value: " << x[i] << endl;
-		x2[i] = xbounds[i][0] + x[i]*(xbounds[i][1] - xbounds[i][0]);
-	}
-	function(x2, fx);
+//	double x2[nreal];
+//	for (int i = 0; i < nreal; i++) {
+//		if (x[i] < 0 || x[i] > 1)
+//			cerr << "SHITTTTTTTT! Value: " << x[i] << endl;
+//		x2[i] = xbounds[i][0] + x[i]*(xbounds[i][1] - xbounds[i][0]);
+//	}
+//	function(x2, fx);
 	
-//	function(x, fx);
+	for (int i = 0; i < nreal; i++)
+		if (x[i] < xbounds[i][0] || x[i] > xbounds[i][1])
+			cerr << "SHITTTTTTTT! Value: " << x[i] << " out of [" << xbounds[i][0] << "," << xbounds[i][1] << "]" << endl;
+	function(x, fx);
 }
 
 int benchmark::getEvaluations() {

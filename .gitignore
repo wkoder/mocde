@@ -10,3 +10,5 @@
 /results-orig
 /results-moead
 /nsga2
+/mocderunner.o
+/problemdef.o

@@ -8,6 +8,8 @@
 #ifndef MULTIOBJECTIVECOMPACTDIFFERENTIALEVOLUTION_H_
 #define MULTIOBJECTIVECOMPACTDIFFERENTIALEVOLUTION_H_
 
+#include <vector>
+
 class Individual {
 public:
 	Individual(int nreal, int nobj);
@@ -19,6 +21,7 @@ public:
 	int nobj;
 	
 	void copy(Individual *ind);
+	Individual *clone();
 	
 private:
 
@@ -45,9 +48,13 @@ public:
 	int solve(double **xs, double **fxs, int n, int m, int maxEvaluations, int populationSize, double CR,
 				double F, double randomSeed, double (*bounds)[2], void (*function)(double *x, double *fx));
 
+	int nobj;
+	void (*function)(double *x, double *fx);
+	double chebyshevScalarizing(double *fx, double *namda);
+
 private:
 	double solve(double *xs, int n, int maxEvaluations, int populationSize, double CR,
-					double F, double randomSeed, double (*bounds)[2], double (*function)(double *x));
+					double F, double *startingMean, double *startingStdDev, double (*bounds)[2], double (*function)(double *x));
 	
 	void initSubproblems(double **L);
 	void initNeighborhood();
@@ -56,19 +63,24 @@ private:
 	void crossover(Individual *a, Individual *b, Individual *c, Individual *child, double CR, double rate);
 	void mutation(Individual *ind, double rate);
 	void updateSubproblem(Individual *ind, int subproblemId, int type);
-	double chebyshevScalarizing(double *fx, double *namda);
 	void computeUtility();
 	int tourSelection(int *order, int depth);
+	bool addToArchive(std::vector<Individual *> &archive, Individual *ind, Individual *parent);
 	
 	Subproblem **subproblems;
 	int nreal;
-	int nobj;
 	int populationSize;
 	int updateLimit;
-	void (*function)(double *x, double *fx);
 	double *ideal;
 	double *utility;
 	int nicheSize;
+};
+
+enum ParetoDominance {
+	DOMINATED, 
+	DOMINATES, 
+	EQUAL, 
+	NON_DOMINATED 
 };
 
 #endif /* MULTIOBJECTIVECOMPACTDIFFERENTIALEVOLUTION_H_ */

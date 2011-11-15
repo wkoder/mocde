@@ -1,6 +1,6 @@
 #! /bin/bash
 
-path=results
+path=$3
 mkdir -p $path
 varfile=$path/$1"_var.out"
 objfile=$path/$1"_front.out"

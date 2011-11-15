@@ -17,8 +17,15 @@
 
 #include "moead/algorithm.h"
 
-MultiObjectiveCompactDifferentialEvolution::MultiObjectiveCompactDifferentialEvolution() {
+//#define ORIGINAL_MOEAD_IMPL
+//#define MY_MOEAD_IMPL
+//#define MOCDE_IMPL
+#define PAES_IMPL
 
+MultiObjectiveCompactDifferentialEvolution *currentInstance;
+
+MultiObjectiveCompactDifferentialEvolution::MultiObjectiveCompactDifferentialEvolution() {
+	currentInstance = this;
 }
 
 MultiObjectiveCompactDifferentialEvolution::~MultiObjectiveCompactDifferentialEvolution() {
@@ -33,9 +40,12 @@ void ensureBounds(double *x, double (*bounds)[2], int n) {
 }
 
 void generateX(double *x, double *u, double *d, double (*bounds)[2], int n) {
-	for (int i = 0; i < n; i++)
+	for (int i = 0; i < n; i++) {
 		x[i] = normal(u[i], d[i]);
-	ensureBounds(x, bounds, n);
+		while (x[i] < bounds[i][0] || x[i] > bounds[i][1]) // Until it's tight
+			x[i] = normal(u[i], d[i]);
+	}
+//	ensureBounds(x, bounds, n);
 }
 
 void printx(char *d, double *x, int n) {
@@ -56,6 +66,34 @@ bool comparePair(pair<double, int> a, pair<double, int> b) {
 	return a.first < b.first;
 }
 
+ParetoDominance comparePareto(double *a, double *b, int nobj) {
+	ParetoDominance cmp = EQUAL;
+	for (int i = 0; i < nobj; i++)
+		if (fabs(a[i] - b[i]) < EPS)
+			continue;
+		else if (a[i] < b[i]) // Dominates on f_i
+			if (cmp == DOMINATED)
+				return NON_DOMINATED;
+			else
+				cmp = DOMINATES;
+		else //if (a[i] > b[i]) // Dominated on f_i
+			if (cmp == DOMINATES)
+				return NON_DOMINATED;
+			else
+				cmp = DOMINATED;
+	
+	return cmp;
+}
+
+double getCrowdDistance(Individual *ind, vector<Individual *> &archive) {
+	double indDist = INF;
+	for (vector<Individual *>::iterator it = archive.begin(); it < archive.end(); it++)
+		if (*it != ind)
+			indDist = min(indDist, norm2((*it)->fx, ind->fx, nobj));
+	
+	return indDist;
+}
+
 /**
  * Implementation of the Fisher-Yates shuffling algorithm 
  * (http://en.wikipedia.org/wiki/Fisher%E2%80%93Yates_shuffle)
@@ -67,6 +105,28 @@ void shuffle(int *x, int n) {
 		x[i] = x[j];
 		x[j] = tmp;
 	}
+}
+
+double *currentNamda;
+int currentFullNamdaIdx;
+
+double chebyshevSimpleCost(double *x) {
+	double fx[currentInstance->nobj];
+	currentInstance->function(x, fx);
+	
+	double sum = 0;
+	for (int i = 0; i < currentInstance->nobj; i++)
+		if (i == currentInstance->nobj)
+			sum += fx[i];
+		else
+			sum += fx[i] * 0.0001;
+	return sum;
+}
+
+double chebyshevCost(double *x) {
+	double fx[currentInstance->nobj];
+	currentInstance->function(x, fx);
+	return currentInstance->chebyshevScalarizing(fx, currentNamda);
 }
 
 double MultiObjectiveCompactDifferentialEvolution::chebyshevScalarizing(double *fx, double *namda) {
@@ -82,8 +142,53 @@ double MultiObjectiveCompactDifferentialEvolution::chebyshevScalarizing(double *
 	return max;
 }
 
+bool MultiObjectiveCompactDifferentialEvolution::addToArchive(vector<Individual *> &archive, Individual *ind, Individual *parent) {
+	bool dominates = false;
+	vector<Individual *>::iterator it = archive.begin();
+	while (it < archive.end()) {
+		ParetoDominance cmp = comparePareto(ind->fx, (*it)->fx, nobj);
+		if (cmp == DOMINATED)
+			return false;
+		
+		if (cmp == DOMINATES) {
+			delete *it;
+			it = archive.erase(it);
+			dominates = true;
+		} else
+			it++;
+	}
+	
+	if (dominates) {
+		archive.push_back(ind->clone());
+		return true;
+	}
+	
+	if (archive.size() < (unsigned int) populationSize) {
+		archive.push_back(ind->clone());
+	} else {
+		double indDist = getCrowdDistance(ind, archive);
+		double crowdedDist = INF;
+		Individual *crowdedInd = NULL;
+		for (it = archive.begin(); it < archive.end(); it++) {
+			double dist = getCrowdDistance(*it, archive);
+			if (dist < crowdedDist) {
+				crowdedDist = dist;
+				crowdedInd = *it;
+			}
+		}
+		
+		if (crowdedDist < indDist) { // Improves diversity
+			archive.erase(find(archive.begin(), archive.end(), crowdedInd));
+			delete crowdedInd;
+			archive.push_back(ind->clone());
+		}
+	}
+	
+	return getCrowdDistance(ind, archive) > getCrowdDistance(parent, archive); // Accept if less crowded than parent
+}
+
 double MultiObjectiveCompactDifferentialEvolution::solve(double *xb, int n, int maxEvaluations, int populationSize, double CR,
-				double F, double randomSeed, double (*bounds)[2], double (*function)(double *x)) {
+				double F, double *startingMean, double *startingStdDev, double (*bounds)[2], double (*function)(double *x)) {
 	double u[n];
 	double d[n];
 	double elite[n];
@@ -91,15 +196,17 @@ double MultiObjectiveCompactDifferentialEvolution::solve(double *xb, int n, int 
 	double xs[n];
 	double xt[n];
 	double xoff[n];
-	warmup_random(randomSeed);
-	initrandom(randomSeed * (1 << 30));
+//	warmup_random(randomSeed);
+//	initrandom(randomSeed * (1 << 30));
 	int startingEval = benchmark::getEvaluations();
 	
 	// PV initialization
 	for (int i = 0; i < n; i++) {
-		double r = bounds[i][1] - bounds[i][0];
-		u[i] = bounds[i][0] + r/2;
-		d[i] = r * 0.341;
+		u[i] = startingMean[i];
+		d[i] = startingStdDev[i];
+//		double r = bounds[i][1] - bounds[i][0];
+//		u[i] = bounds[i][0] + r/2;
+//		d[i] = r * 0.341;
 	}
 	
 	generateX(elite, u, d, bounds, n);
@@ -156,8 +263,12 @@ double MultiObjectiveCompactDifferentialEvolution::solve(double *xb, int n, int 
 //	printf("	best: %s\n", util::toString(elite, n).c_str());
 //	printf("	f(best): %.6f\n", felite);
 	
-	for (int i = 0; i < n; i++)
+	for (int i = 0; i < n; i++) {
 		xb[i] = elite[i];
+		
+		startingMean[i] = u[i];
+		startingStdDev[i] = d[i];
+	}
 	
 	return felite;
 }
@@ -364,85 +475,224 @@ int MultiObjectiveCompactDifferentialEvolution::solve(double **xb, double **fxb,
 		for (int j = 0; j < nobj; j++)
 			file >> L[i][j];
 	file.close();
-//			double dx = 1.0 / (populationSize - 1);
-//			for (int i = 0; i < populationSize; i++) {
-//					L[i] = new double[2];
-//					if (i % 2 == 0)
-//						L[i][0] = i/2 * dx;
-//					else
-//						L[i][0] = L[i-1][1];
-//					L[i][1] = 1 - L[i][0];
-//			}
 	
+#ifdef ORIGINAL_MOEAD_IMPL
+	seed = 177;
+	rnd_uni_init = 90.0;
+	lowBound = 0;
+	uppBound = 1;
 	
-	if (false) {
-		seed = 177;
-		rnd_uni_init = 90.0;
-		lowBound = 0;
-		uppBound = 1;
-		
-		CMOEAD MOEAD;
-		MOEAD.load_parameter(populationSize, maxEvaluations/populationSize, nicheSize, updateLimit, F);
-		MOEAD.exec_emo(xb, fxb, L);
-	} else {
-		initSubproblems(L);
-		initNeighborhood();
-		
-		int order[populationSize];
-		int generation = 0;
-		while (benchmark::getEvaluations() < maxEvaluations) {
+	CMOEAD MOEAD;
+	MOEAD.load_parameter(populationSize, maxEvaluations/populationSize, nicheSize, updateLimit, F);
+	MOEAD.exec_emo(xb, fxb, L);
+	
+#else
+#ifdef MY_MOEAD_IMPL
+	initSubproblems(L);
+	initNeighborhood();
+	
+	int order[populationSize];
+	int generation = 0;
+	while (benchmark::getEvaluations() < maxEvaluations) {
 //			printx("x", subproblems[0]->indiv->x, nreal);
 //			printx("xs", subproblems[0]->saved->x, nreal);
 //			cout << endl;
+		
+		int orderSize = tourSelection(order, 10);
+		for (int i = 0; i < orderSize; i++) {
+			int subId = order[i];
+			int type = flip(F) ? 1 : 2;
+			int a = select(subId, type);
+			while (a == subId)
+				a = select(subId, type);
+			int b = select(subId, type);
+			while (a == b || subId == b)
+				b = select(subId, type);
 			
-			int orderSize = tourSelection(order, 10);
-			for (int i = 0; i < orderSize; i++) {
-				int subId = order[i];
-				int type = flip(F) ? 1 : 2;
-				int a = select(subId, type);
-				while (a == subId)
-					a = select(subId, type);
-				int b = select(subId, type);
-				while (a == b || subId == b)
-					b = select(subId, type);
-				
-				// Create child
-				Individual *child = new Individual(nreal, nobj);
-				crossover(subproblems[subId]->indiv, subproblems[a]->indiv, subproblems[b]->indiv, child, 1.0, 0.5);
-				mutation(child, 1.0 / nreal); // Mutate child
-				
-				function(child->x, child->fx); // Evaluate child
-				updateIdeal(child->fx); // Update reference point
-				updateSubproblem(child, subId, type); // Update subproblem
-				
-				delete child;
-			}
+			// Create child
+			Individual *child = new Individual(nreal, nobj);
+			crossover(subproblems[subId]->indiv, subproblems[a]->indiv, subproblems[b]->indiv, child, 1.0, 0.5);
+			mutation(child, 1.0 / nreal); // Mutate child
 			
+			function(child->x, child->fx); // Evaluate child
+			updateIdeal(child->fx); // Update reference point
+			updateSubproblem(child, subId, type); // Update subproblem
+			
+			delete child;
+		}
+		
 //			for (int i = 0; i < nobj; i++)
 //				cout << ideal[i] << " ";
 //			cout << endl;
-			
-			generation++;
-			if (generation % 50 == 0) // Every 50 generations
-				computeUtility();
-		}
 		
-		for (int i = 0; i < populationSize; i++) {
-			for (int j = 0; j < nreal; j++)
-				xb[i][j] = subproblems[i]->indiv->x[j];
-			for (int j = 0; j < nobj; j++)
-				fxb[i][j] = subproblems[i]->indiv->fx[j];
-			
-			delete subproblems[i];
-		}
-		
-		delete [] subproblems;
-		delete [] utility;
-		delete [] ideal;
+		generation++;
+		if (generation % 50 == 0) // Every 50 generations
+			computeUtility();
 	}
 	
+	for (int i = 0; i < populationSize; i++) {
+		for (int j = 0; j < nreal; j++)
+			xb[i][j] = subproblems[i]->indiv->x[j];
+		for (int j = 0; j < nobj; j++)
+			fxb[i][j] = subproblems[i]->indiv->fx[j];
+		
+		delete subproblems[i];
+	}
+	
+	delete [] subproblems;
+	delete [] utility;
+	delete [] ideal;
+	
+#else
+#ifdef MOCDE_IMPL
+	int effortForIdeal = populationSize/10;
+	int budget = maxEvaluations / (populationSize + nobj*(effortForIdeal-1));
+	int newPopulationSize = 100;
+	double u[nreal];
+	double d[nreal];
+	for (int i = nobj-1; i >= 0; i--) {
+		for (int j = 0; j < nreal; j++) {
+			double r = bounds[j][1] - bounds[j][0];
+			u[j] = bounds[j][0] + r/2;
+			d[j] = r * 0.341;
+		}
+		
+		currentFullNamdaIdx = i;
+		ideal[i] = solve(xb[i], nreal, budget*effortForIdeal, newPopulationSize, CR, F, u, d, bounds, chebyshevSimpleCost);
+		cout << ideal[i] << " ";
+	}
+	cout << endl;
+	
+	double dx = 1.0 / (populationSize - 1);
+	for (int i = 0; i < populationSize; i++) {
+		L[i] = new double[2];
+		L[i][0] = i * dx;
+		L[i][1] = 1 - L[i][0];
+	}
+	
+	for (int sub = 2; sub < populationSize; sub++) {
+		for (int j = 0; j < nreal; j++) {
+			double r = bounds[j][1] - bounds[j][0];
+			u[j] = bounds[j][0] + r/2;
+			d[j] = r * 0.341;
+		}
+		
+		currentNamda = L[sub-1];
+		solve(xb[sub], nreal, budget, newPopulationSize, CR, F, u, d, bounds, chebyshevCost);
+	}
+	
+	for (int i = 0; i < populationSize; i++) // Get the real function value
+		function(xb[i], fxb[i]);
+#else
+#ifdef PAES_IMPL
+	double u[nreal];
+	double d[nreal];
+	double xr[nreal];
+	double xs[nreal];
+	double xt[nreal];
+	vector<Individual *> archive;
+	
+	// PV initialization
+	for (int i = 0; i < nreal; i++) {
+		double r = bounds[i][1] - bounds[i][0];
+		u[i] = bounds[i][0] + r/2;
+		d[i] = r * 0.341;
+	}
+	
+	Individual *ind = new Individual(nreal, nobj);
+	generateX(ind->x, u, d, bounds, nreal);
+	function(ind->x, ind->fx);
+	archive.push_back(ind->clone());
+	while (benchmark::getEvaluations() < maxEvaluations) {
+//		if (benchmark::getEvaluations() % populationSize == 0) {
+//			printf("Iteration #%d:\n", benchmark::getEvaluations() / populationSize);
+//			printf("	best: %s\n", util::toString(elite, n).c_str());
+//			printf("	f(best): %.6f\n", felite);
+//		}
+		
+		// Mutation
+		generateX(xr, u, d, bounds, nreal);
+		generateX(xs, u, d, bounds, nreal);
+		generateX(xt, u, d, bounds, nreal);
+		
+		Individual *off = new Individual(nreal, nobj);
+		for (int i = 0; i < nreal; i++) {
+			off->x[i] = xt[i] + F*(xr[i] - xs[i]);
+			// Ensure bounds
+			if (off->x[i] < bounds[i][0])
+				off->x[i] = rndreal(bounds[i][0], xt[i]);
+			else if (off->x[i] > bounds[i][1])
+				off->x[i] = rndreal(xt[i], bounds[i][1]);
+		}
+		
+		// Crossover
+//		Individual *elite = archive[rndint(archive.size())];
+		for (int i = 0; i < nreal; i++)
+			if (!flip(CR))
+				off->x[i] = ind->x[i];
+//				ioff->x[i] = elite->x[i];
+		
+		// Elite selection
+		function(off->x, off->fx);
+//		Individual *winner = elite;
+		Individual *winner = ind;
+		Individual *loser = off;
+//		switch (comparePareto(off->fx, elite->fx, nobj)) {
+		ParetoDominance cmp = comparePareto(off->fx, ind->fx, nobj);
+		if (cmp == DOMINATES) {
+			addToArchive(archive, off, ind);
+			winner = off;
+			loser = ind;
+		} else if (cmp == NON_DOMINATED) {
+			if (addToArchive(archive, off, ind)) {
+				winner = off;
+				loser = ind;
+			}
+		}
+			
+		// PV update
+		for (int i = 0; i < nreal; i++) {
+			double u2 = u[i] + (winner->x[i] - loser->x[i]) / populationSize;
+			double d2 = sqrt(fabs(d[i]*d[i] + u[i]*u[i] - u2*u2 + 
+					(winner->x[i]*winner->x[i] - loser->x[i]*loser->x[i]) / populationSize));
+			
+			// TODO: Improve bound ensuring!
+			u2 = max(u2, bounds[i][0]);
+			u2 = min(u2, bounds[i][1]);
+			u[i] = u2;
+			d[i] = d2;
+		}
+		
+		if (winner == off) {
+			delete ind;
+			ind = off;
+		} else
+			delete off;
+	}
+	
+	delete ind;
+	
+//	printf("Iteration #%d:\n", benchmark::getEvaluations() / populationSize);
+//	printf("	best: %s\n", util::toString(elite, n).c_str());
+//	printf("	f(best): %.6f\n", felite);
+	
+	for (unsigned int i = 0; i < archive.size(); i++) {
+		for (int j = 0; j < nreal; j++)
+			xb[i][j] = archive[i]->x[j];
+		for (int j = 0; j < nobj; j++)
+			fxb[i][j] = archive[i]->fx[j];
+	}
+	
+	return archive.size();
+#endif
+#endif
+#endif
+#endif
+	
+#ifndef PAES_IMPL
 	util::destroyMatrix(&L, populationSize);
 	return populationSize;
+#endif
 }
 
 Individual::Individual(int nreal, int nobj) {
@@ -455,6 +705,13 @@ Individual::Individual(int nreal, int nobj) {
 Individual::~Individual() {
 	delete [] x;
 	delete [] fx;
+}
+
+Individual *Individual::clone() {
+	Individual *clone = new Individual(nreal, nobj);
+	clone->copy(this);
+	
+	return clone;
 }
 
 void Individual::copy(Individual *ind) {
