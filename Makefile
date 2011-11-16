@@ -1,5 +1,5 @@
-#CXXFLAGS =	-O3 -g -Wall -fmessage-length=0
-CXXFLAGS = -g -Wall -fmessage-length=0
+CXXFLAGS = -O3 -g -Wall -fmessage-length=0
+#CXXFLAGS = -g -Wall -fmessage-length=0
 CXX = g++ $(CXXFLAGS)
 OBJS = randomlib.o benchmark.o rand.o util.o mocde.o problemdef.o
 #DEPS = $(OBJS) algorithm.h.gch common.h.gch global.h.gch individual.h.gch random.h.gch recomb.h.gch cec09.h.gch

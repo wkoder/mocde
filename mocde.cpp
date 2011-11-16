@@ -48,7 +48,7 @@ void generateX(double *x, double *u, double *d, double (*bounds)[2], int n) {
 //	ensureBounds(x, bounds, n);
 }
 
-void printx(char *d, double *x, int n) {
+void printx(const char *d, double *x, int n) {
 	printf("%s = ", d);
 	for (int i = 0; i < n; i++)
 		printf("%.3f ", x[i]);
@@ -462,6 +462,7 @@ int MultiObjectiveCompactDifferentialEvolution::solve(double **xb, double **fxb,
 	warmup_random(randomSeed);
 	initrandom(randomSeed * (1 << 30));
 	
+#ifndef PAES_IMPL
 	double **L = util::createMatrix(populationSize, nobj);
 	char filename[1024];
 	sprintf(filename, "moead/W%dD.dat", nobj);
@@ -475,6 +476,7 @@ int MultiObjectiveCompactDifferentialEvolution::solve(double **xb, double **fxb,
 		for (int j = 0; j < nobj; j++)
 			file >> L[i][j];
 	file.close();
+#endif
 	
 #ifdef ORIGINAL_MOEAD_IMPL
 	seed = 177;
@@ -596,7 +598,8 @@ int MultiObjectiveCompactDifferentialEvolution::solve(double **xb, double **fxb,
 	for (int i = 0; i < nreal; i++) {
 		double r = bounds[i][1] - bounds[i][0];
 		u[i] = bounds[i][0] + r/2;
-		d[i] = r * 0.341;
+//		d[i] = r * 0.341;
+		d[i] = r * 20;
 	}
 	
 	Individual *ind = new Individual(nreal, nobj);
@@ -620,9 +623,13 @@ int MultiObjectiveCompactDifferentialEvolution::solve(double **xb, double **fxb,
 			off->x[i] = xt[i] + F*(xr[i] - xs[i]);
 			// Ensure bounds
 			if (off->x[i] < bounds[i][0])
-				off->x[i] = rndreal(bounds[i][0], xt[i]);
+				off->x[i] = bounds[i][0];
 			else if (off->x[i] > bounds[i][1])
-				off->x[i] = rndreal(xt[i], bounds[i][1]);
+				off->x[i] = bounds[i][1];
+//			if (off->x[i] < bounds[i][0])
+//				off->x[i] = rndreal(bounds[i][0], xt[i]);
+//			else if (off->x[i] > bounds[i][1])
+//				off->x[i] = rndreal(xt[i], bounds[i][1]);
 		}
 		
 		// Crossover
@@ -648,6 +655,8 @@ int MultiObjectiveCompactDifferentialEvolution::solve(double **xb, double **fxb,
 				winner = off;
 				loser = ind;
 			}
+//			winner = off;
+//			loser = ind;
 		}
 			
 		// PV update
@@ -660,6 +669,8 @@ int MultiObjectiveCompactDifferentialEvolution::solve(double **xb, double **fxb,
 			u2 = max(u2, bounds[i][0]);
 			u2 = min(u2, bounds[i][1]);
 			u[i] = u2;
+//			if (d2 > d[i]+EPS)
+//				cout << "YES! " << d2-d[i] << endl;
 			d[i] = d2;
 		}
 		
@@ -669,6 +680,9 @@ int MultiObjectiveCompactDifferentialEvolution::solve(double **xb, double **fxb,
 		} else
 			delete off;
 	}
+	
+//	printx("Mean", u, nreal);
+//	printx("Dev", d, nreal);
 	
 	delete ind;
 	
