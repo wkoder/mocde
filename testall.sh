@@ -1,6 +1,6 @@
 #! /bin/bash
 
-$path=results
+path="mocde"
 if [ -d "$path" ]; then
 	datetime=`date '+%Y%m%d-%H%M%S'`
 	newpath="$path.$datetime"

@@ -6,9 +6,7 @@
 /rand.o
 /randomlib.o
 /mocderunner
-/results
-/results-orig
-/results-moead
 /nsga2
 /mocderunner.o
 /problemdef.o
+/results.*

@@ -2,7 +2,7 @@
 
 path=$1
 if [ -z "$path" ]; then
-	path=results
+	path="mocde"
 
 	if [ -d "$path" ]; then
 		datetime=`date '+%Y%m%d-%H%M%S'`
