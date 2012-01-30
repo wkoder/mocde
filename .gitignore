@@ -10,3 +10,5 @@
 /mocderunner.o
 /problemdef.o
 /results.*
+/bin
+/results-history
