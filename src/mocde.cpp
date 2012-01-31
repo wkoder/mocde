@@ -467,7 +467,7 @@ int MultiObjectiveCompactDifferentialEvolution::solve(double **xb, double **fxb,
 #ifndef PAES_IMPL
 	double **L = util::createMatrix(populationSize, nobj);
 	char filename[1024];
-	sprintf(filename, "moead/W%dD.dat", nobj);
+	sprintf(filename, "resources/W%dD.dat", nobj);
 	
 	ifstream file(filename);
 	if (!file.is_open()) {

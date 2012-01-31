@@ -1,9 +1,14 @@
+#! /usr/bin/python
+
 '''
 Created on Jan 30, 2012
 
 @author: Moises Osorio [WCoder]
 '''
-import subprocess
+from subprocess import Popen, PIPE
+import os
+import random
+import re
 import time
 
 class MOCDETest():
@@ -43,37 +48,68 @@ class MOCDETest():
     
     def __init__(self, name):
         self.name = name
-        self.path = "%s%s.%s" % (MOCDETest.__RESULTS__, self.name, time.strftime("%Y%m%d-%H%M%S"))
+        dirName = "" if self.name is None else self.name + "/"
+        self.path = "%s/%s%s" % (MOCDETest.__RESULTS__, dirName, time.strftime("%Y%m%d-%H%M%S"))
+        if not os.path.exists(self.path):
+            os.makedirs(self.path)
+        random.seed()
         
-    def testDimension(self, dim):
+    def testDimension(self, dim, times=1):
         for test in MOCDETest.__TESTS__:
             if test[2] == dim:
-                self.testFunction(test[0], test[1], test[2])
+                self.testFunction(test[0], test[1], test[2], times)
                 
-    def testFunction(self, function, nreal, nobj):
-        varFile = "%s/%s_%s" % (self.path, function, MOCDETest.__VAR_OUT__)
-        objFile = "%s/%s_%s" % (self.path, function, MOCDETest.__OBJ_OUT__)
-        cmd = [MOCDETest.__EXE__, function, "%s" % nreal, varFile, objFile, "--silent"]
-        
-        print "----------------------------------"
-        print "Running '%s'" % (cmd[:3].join(" "))
-        start = time.time()
-        returnCode = subprocess.call(cmd, shell=True)
-        if returnCode != 0:
-            print "    ERROR: Received return code %d!" % (returnCode)
-            raise "Received return code %d!" % (returnCode)
-        end = time.time()
-        print "Test took %.2f seconds" % (end - start)
-        print "----------------------------------"
+    def testFunctionName(self, function, times=1):
+        function = function.lower()
+        for test in MOCDETest.__TESTS__:
+            if test[0] == function or (function.endswith("*") and test[0].startswith(function[:-1])):
+                self.testFunction(test[0], test[1], test[2], times)
+                
+    def testFunction(self, function, nreal, nobj, times=1):
+        for i in xrange(times):
+            iStr = "_%d" % (i)
+            if times == 1:
+                iStr = "" 
+            varFile = "%s/%s%s_%s" % (self.path, function, iStr, MOCDETest.__VAR_OUT__)
+            objFile = "%s/%s%s_%s" % (self.path, function, iStr, MOCDETest.__OBJ_OUT__)
+            cmd = [MOCDETest.__EXE__, function, "%s" % nreal, varFile, objFile, "--silent"]
+            
+            print "----------------------------------"
+            print "Running '%s' (%d/%d)" % (" ".join(cmd[:3]), i+1, times)
+            inputFile = open('test/test.in', 'r')
+            testInput = "%s\n%f\n" % (inputFile.read(), random.random())
+            start = time.time()
+            
+            run = Popen(cmd, stdin=PIPE)
+            run.communicate(input=testInput)
+            returnCode = run.wait()
+            if returnCode != 0:
+                error = "Received return code %d!" % (returnCode)
+                print "    ERROR: %s" % (error)
+                raise Exception(error)
+            
+            end = time.time()
+            print "Test took %.2f seconds" % (end - start)
+            print "----------------------------------"
 
 
 if __name__ == '__main__':
-    testName = input("Test name: ")
-    dim = input("Dimensions to test: ").split()
-    dim = [int(d) for d in dim]
+    name = raw_input("Test name: ")
+    times = raw_input("Times to run: ")
+    if len(times) == 0:
+        times = 1
+    else:
+        times = int(times)
     
-    test = MOCDETest(testName)
-    for d in xrange(2, 100):
-        if len(dim) == 0 or d in dim:
-            test.testDimension(dim)
+    test = MOCDETest(name)
+    functions = raw_input("Functions to test: ").split()
+    if len(functions) > 0:
+        for function in functions:
+            test.testFunctionName(function, times)
+    else:
+        dim = raw_input("Dimensions to test: ").split()
+        dim = [int(d) for d in dim]
+        for d in xrange(2, 101):
+            if len(dim) == 0 or d in dim:
+                test.testDimension(d, times)
     

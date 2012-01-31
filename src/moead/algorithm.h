@@ -69,7 +69,7 @@ void CMOEAD::init_population() {
 	char filename[1024];
 	// Read weight vectors from a data file
 //	sprintf(filename, "ParameterSetting/Weight/W%dD_%d.dat", nobj, pops);
-	sprintf(filename, "moead/W%dD.dat", nobj);
+	sprintf(filename, "resources/W%dD.dat", nobj);
 	std::ifstream readf(filename);
 
 	for (int i = 0; i < pops; i++) {
