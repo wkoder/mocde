@@ -21,8 +21,8 @@
 //#define ORIGINAL_MOEAD_IMPL
 //#define MY_MOEAD_IMPL
 //#define MOCDE_IMPL
-//#define PAES_IMPL
-#define ORIGINAL_PAES_IMPL
+#define MOCDE_PAES_IMPL
+//#define ORIGINAL_PAES_IMPL
 
 MultiObjectiveCompactDifferentialEvolution *currentInstance;
 
@@ -464,7 +464,7 @@ int MultiObjectiveCompactDifferentialEvolution::solve(double **xb, double **fxb,
 	warmup_random(randomSeed);
 	initrandom(randomSeed * (1 << 30));
 	
-#ifndef PAES_IMPL
+#ifndef MOCDE_PAES_IMPL
 	double **L = util::createMatrix(populationSize, nobj);
 	char filename[1024];
 	sprintf(filename, "resources/W%dD.dat", nobj);
@@ -588,7 +588,7 @@ int MultiObjectiveCompactDifferentialEvolution::solve(double **xb, double **fxb,
 	for (int i = 0; i < populationSize; i++) // Get the real function value
 		function(xb[i], fxb[i]);
 #else
-#ifdef PAES_IMPL
+#ifdef MOCDE_PAES_IMPL
 	double u[nreal];
 	double d[nreal];
 	double xr[nreal];
@@ -710,7 +710,7 @@ int MultiObjectiveCompactDifferentialEvolution::solve(double **xb, double **fxb,
 #endif
 #endif
 	
-#ifndef PAES_IMPL
+#ifndef MOCDE_PAES_IMPL
 	util::destroyMatrix(&L, populationSize);
 	return populationSize;
 #endif
