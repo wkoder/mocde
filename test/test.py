@@ -48,7 +48,7 @@ class MOCDETest():
     
     def __init__(self, name):
         self.name = name
-        dirName = "" if self.name is None else self.name + "/"
+        dirName = "" if self.name is None else self.name + "."
         self.path = "%s/%s%s" % (MOCDETest.__RESULTS__, dirName, time.strftime("%Y%m%d-%H%M%S"))
         if not os.path.exists(self.path):
             os.makedirs(self.path)
@@ -66,6 +66,8 @@ class MOCDETest():
                 self.testFunction(test[0], test[1], test[2], times)
                 
     def testFunction(self, function, nreal, nobj, times=1):
+        timeSum = 0.0
+        print "----------------------------------"
         for i in xrange(times):
             iStr = "_%d" % (i)
             if times == 1:
@@ -74,10 +76,10 @@ class MOCDETest():
             objFile = "%s/%s%s_%s" % (self.path, function, iStr, MOCDETest.__OBJ_OUT__)
             cmd = [MOCDETest.__EXE__, function, "%s" % nreal, varFile, objFile, "--silent"]
             
-            print "----------------------------------"
             print "Running '%s' (%d/%d)" % (" ".join(cmd[:3]), i+1, times)
             inputFile = open('test/test.in', 'r')
-            testInput = "%s\n%f\n" % (inputFile.read(), random.random())
+            ran = random.random()
+            testInput = "%s\n%f\n" % (inputFile.read(), ran)
             start = time.time()
             
             run = Popen(cmd, stdin=PIPE)
@@ -89,8 +91,14 @@ class MOCDETest():
                 raise Exception(error)
             
             end = time.time()
-            print "Test took %.2f seconds" % (end - start)
-            print "----------------------------------"
+            timeTook = end - start
+            timeSum += timeTook
+            print "    Test took %.2f seconds" % (timeTook)
+            print
+            
+        print "Stats for %s" % (function)
+        print "    Average time: %.2f seconds" % (timeSum / times)
+        print "----------------------------------"
 
 
 if __name__ == '__main__':
@@ -101,8 +109,8 @@ if __name__ == '__main__':
     else:
         times = int(times)
     
-    test = MOCDETest(name)
     functions = raw_input("Functions to test: ").split()
+    test = MOCDETest(name)
     if len(functions) > 0:
         for function in functions:
             test.testFunctionName(function, times)
