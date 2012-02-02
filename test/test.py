@@ -8,7 +8,6 @@ Created on Jan 30, 2012
 from subprocess import Popen, PIPE
 import os
 import random
-import re
 import time
 
 class MOCDETest():
@@ -61,13 +60,24 @@ class MOCDETest():
                 
     def testFunctionName(self, function, times=1):
         function = function.lower()
-        for test in MOCDETest.__TESTS__:
-            if test[0] == function or (function.endswith("*") and test[0].startswith(function[:-1])):
-                self.testFunction(test[0], test[1], test[2], times)
+        tests = [test for test in MOCDETest.__TESTS__ if test[0] == function or (function.endswith("*") and test[0].startswith(function[:-1]))]
+        start = time.time()
+        i = 0
+        for test in tests:
+            i += 1
+            print "Testing %s (%d/%d)" % (test[0], i, len(tests))
+            self.testFunction(test[0], test[1], test[2], times)
+            
+        end = time.time()
+        timeTook = end - start
+        print "Tests took %.2f seconds" % (timeTook)
                 
     def testFunction(self, function, nreal, nobj, times=1):
         timeSum = 0.0
         print "----------------------------------"
+        inputFile = open('test/test.in', 'r')
+        inputData = inputFile.read()
+        inputFile.close()
         for i in xrange(times):
             iStr = "_%d" % (i)
             if times == 1:
@@ -77,9 +87,8 @@ class MOCDETest():
             cmd = [MOCDETest.__EXE__, function, "%s" % nreal, varFile, objFile, "--silent"]
             
             print "Running '%s' (%d/%d)" % (" ".join(cmd[:3]), i+1, times)
-            inputFile = open('test/test.in', 'r')
             ran = random.random()
-            testInput = "%s\n%f\n" % (inputFile.read(), ran)
+            testInput = "%s\n%f\n" % (inputData, ran)
             start = time.time()
             
             run = Popen(cmd, stdin=PIPE)

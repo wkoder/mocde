@@ -78,18 +78,38 @@ int main(int argc, char **argv) {
 	if (!silent)
 		cout << "Population size: ";
 	cin >> populationSize;
+	if (populationSize <= 0) {
+		cout << "Population size must be positive" << endl;
+		exit(1);
+	}
 	if (!silent)
 		cout << "Maximum number of evaluations: ";
 	cin >> maxEvaluations;
+	if (maxEvaluations <= 0) {
+		cout << "Maximum number of evaluations must be positive" << endl;
+		exit(1);
+	}
 	if (!silent)
-		cout << "Differential variation (0..2): ";
+		cout << "Differential variation [0..2]: ";
 	cin >> F;
+	if (F < 0 || F > 2) {
+		cout << "Differential variation must be in [0..2]" << endl;
+		exit(1);
+	}
 	if (!silent)
-		cout << "Crossover probability (0..1): ";
+		cout << "Crossover probability [0..1): ";
 	cin >> CR;
+	if (CR < 0 || CR >= 1) {
+		cout << "Crossover probability must be in [0..1)" << endl;
+		exit(1);
+	}
 	if (!silent)
-		cout << "Random seed: ";
+		cout << "Random seed [0..1): ";
 	cin >> randomSeed;
+	if (randomSeed < 0 || randomSeed >= 1) {
+		cout << "Random seed must be in [0..1)" << endl;
+		exit(1);
+	}
 	if (!silent)
 		cout << "Solving " << instanceName << " for " << nreal << " parameters and " << nobj << " objective functions.\n";
 	double **xs = util::createMatrix(populationSize, nreal);

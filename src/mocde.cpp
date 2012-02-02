@@ -600,27 +600,20 @@ int MultiObjectiveCompactDifferentialEvolution::solve(double **xb, double **fxb,
 	for (int i = 0; i < nreal; i++) {
 		double r = bounds[i][1] - bounds[i][0];
 		u[i] = bounds[i][0] + r/2;
-//		d[i] = r * 0.341;
-		d[i] = r * 20;
+		d[i] = r*2;
 	}
 	
 	Individual *ind = new Individual(nreal, nobj);
 	generateX(ind->x, u, d, bounds, nreal);
 	function(ind->x, ind->fx);
 	archive.push_back(ind->clone());
+	Individual *off = new Individual(nreal, nobj);
 	while (benchmark::getEvaluations() < maxEvaluations) {
-//		if (benchmark::getEvaluations() % populationSize == 0) {
-//			printf("Iteration #%d:\n", benchmark::getEvaluations() / populationSize);
-//			printf("	best: %s\n", util::toString(elite, n).c_str());
-//			printf("	f(best): %.6f\n", felite);
-//		}
-		
 		// Mutation
 		generateX(xr, u, d, bounds, nreal);
 		generateX(xs, u, d, bounds, nreal);
 		generateX(xt, u, d, bounds, nreal);
 		
-		Individual *off = new Individual(nreal, nobj);
 		for (int i = 0; i < nreal; i++) {
 			off->x[i] = xt[i] + F*(xr[i] - xs[i]);
 			// Ensure bounds
@@ -639,14 +632,11 @@ int MultiObjectiveCompactDifferentialEvolution::solve(double **xb, double **fxb,
 		for (int i = 0; i < nreal; i++)
 			if (!flip(CR))
 				off->x[i] = ind->x[i];
-//				ioff->x[i] = elite->x[i];
 		
 		// Elite selection
 		function(off->x, off->fx);
-//		Individual *winner = elite;
 		Individual *winner = ind;
 		Individual *loser = off;
-//		switch (comparePareto(off->fx, elite->fx, nobj)) {
 		ParetoDominance cmp = comparePareto(off->fx, ind->fx, nobj);
 		if (cmp == DOMINATES) {
 			addToArchive(archive, off, ind);
@@ -657,40 +647,33 @@ int MultiObjectiveCompactDifferentialEvolution::solve(double **xb, double **fxb,
 				winner = off;
 				loser = ind;
 			}
-//			winner = off;
-//			loser = ind;
 		}
 			
 		// PV update
 		for (int i = 0; i < nreal; i++) {
 			double u2 = u[i] + (winner->x[i] - loser->x[i]) / populationSize;
-			double d2 = sqrt(fabs(d[i]*d[i] + u[i]*u[i] - u2*u2 + 
-					(winner->x[i]*winner->x[i] - loser->x[i]*loser->x[i]) / populationSize));
-			
 			// TODO: Improve bound ensuring!
 			u2 = max(u2, bounds[i][0]);
 			u2 = min(u2, bounds[i][1]);
+
+			double d2 = sqrt(fabs(d[i]*d[i] + u[i]*u[i] - u2*u2 + 
+					(winner->x[i]*winner->x[i] - loser->x[i]*loser->x[i]) / populationSize));
+			
 			u[i] = u2;
 //			if (d2 > d[i]+EPS)
 //				cout << "YES! " << d2-d[i] << endl;
 			d[i] = d2;
 		}
 		
-		if (winner == off) {
-			delete ind;
-			ind = off;
-		} else
-			delete off;
+		if (winner == off)
+			ind->copy(off);
 	}
 	
 //	printx("Mean", u, nreal);
 //	printx("Dev", d, nreal);
 	
 	delete ind;
-	
-//	printf("Iteration #%d:\n", benchmark::getEvaluations() / populationSize);
-//	printf("	best: %s\n", util::toString(elite, n).c_str());
-//	printf("	f(best): %.6f\n", felite);
+	delete off;
 	
 	for (unsigned int i = 0; i < archive.size(); i++) {
 		for (int j = 0; j < nreal; j++)
