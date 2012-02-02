@@ -12,3 +12,4 @@
 /results.*
 /bin
 /results-history
+/test_runs.db
