@@ -531,7 +531,7 @@ void archive_soln(sol *s) {
 	// in addition, maintain the archive such that all solutions are nondominated. 
 
 	int i;
-	int repl;
+	int repl = 0;
 	int yes = 0;
 	int most;
 	int result;

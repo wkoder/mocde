@@ -3,7 +3,9 @@
 # ifndef _GLOBAL_H_
 # define _GLOBAL_H_
 
+# undef INF
 # define INF 1.0e14
+# undef EPS
 # define EPS 1.0e-14
 # define E  2.71828182845905
 # define PI 3.14159265358979
@@ -108,7 +110,7 @@ void mutation_ind (individual *ind);
 void bin_mutate_ind (individual *ind);
 void real_mutate_ind (individual *ind);
 
-void test_problem (double *xreal, double *xbin, int **gene, double *obj, double *constr);
+//void test_problem (double *xreal, double *xbin, int **gene, double *obj, double *constr);
 
 void assign_rank_and_crowding_distance (population *new_pop);
 
@@ -123,5 +125,8 @@ void q_sort_dist(population *pop, int *dist, int left, int right);
 
 void selection (population *old_pop, population *new_pop);
 individual* tournament (individual *ind1, individual *ind2);
+void evaluate_ind (individual *ind);
+
+int nsga2(double **xb, double **fxb, int _popSize, int _ngen, double _pcross, double _pmut, int _nreal, int _nobj, double (*bounds)[2], double _seed);
 
 # endif

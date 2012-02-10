@@ -5,7 +5,7 @@
 # include <math.h>
 
 # include "global.h"
-# include "rand.h"
+# include "../randomlib.h"
 
 /* Routine for usual non-domination checking
    It will return the following values

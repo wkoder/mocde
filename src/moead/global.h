@@ -21,7 +21,7 @@ using namespace std;
 
 //------------- Parameters in test instance ------------------
 
-extern int     nreal;
+extern int nreal;
 extern int nobj;                    //  the number of variables and objectives
 
 extern double  lowBound;

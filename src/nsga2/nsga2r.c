@@ -6,11 +6,11 @@
 # include <unistd.h>
 
 # include "global.h"
-# include "rand.h"
+# include "../randomlib.h"
 
-int nreal;
+//int nreal;
 int nbin;
-int nobj;
+//int nobj;
 int ncon;
 int popsize;
 double pcross_real;
@@ -37,6 +37,7 @@ int obj3;
 int angle1;
 int angle2;
 
+#ifdef NSGA2
 int main (int argc, char **argv)
 {
     int i;
@@ -451,4 +452,74 @@ int main (int argc, char **argv)
     free (mixed_pop);
     printf("\n Routine successfully exited \n");
     return (0);
+}
+#endif
+
+int nsga2(double **xb, double **fxb, int _popSize, int _ngen, double _pcross, double _pmut, int _nreal, int _nobj, double (*bounds)[2], double _seed) {
+	int i, j;
+	population *parent_pop;
+	population *child_pop;
+	population *mixed_pop;
+//	seed = _seed;
+	popsize = _popSize;
+	if (popsize < 4 || (popsize % 4) != 0) {
+		printf("\n Wrong population size entered, hence exiting \n");
+		exit(1);
+	}
+	ngen = _ngen;
+	nobj = _nobj;
+	ncon = 0;
+	nreal = _nreal;
+	min_realvar = (double *) malloc(nreal * sizeof(double));
+	max_realvar = (double *) malloc(nreal * sizeof(double));
+	for (i = 0; i < nreal; i++) {
+		min_realvar[i] = bounds[i][0];
+		max_realvar[i] = bounds[i][1];
+	}
+	pcross_real = _pcross;
+	pmut_real = _pmut;
+	eta_c = 5; // 5-20
+	eta_m = 5; // 5-50
+	nbin = 0;
+	choice = 0;
+	bitlength = 0;
+	nbinmut = 0;
+	nrealmut = 0;
+	nbincross = 0;
+	nrealcross = 0;
+	parent_pop = (population *) malloc(sizeof(population));
+	child_pop = (population *) malloc(sizeof(population));
+	mixed_pop = (population *) malloc(sizeof(population));
+	allocate_memory_pop(parent_pop, popsize);
+	allocate_memory_pop(child_pop, popsize);
+	allocate_memory_pop(mixed_pop, 2 * popsize);
+	randomize(_seed);
+	initialize_pop(parent_pop);
+	decode_pop(parent_pop);
+	evaluate_pop(parent_pop);
+	assign_rank_and_crowding_distance(parent_pop);
+//	sleep(1);
+	for (i = 2; i <= ngen; i++) {
+		selection(parent_pop, child_pop);
+		mutation_pop(child_pop);
+		decode_pop(child_pop);
+		evaluate_pop(child_pop);
+		merge(parent_pop, child_pop, mixed_pop);
+		fill_nondominated_sort(mixed_pop, parent_pop);
+	}
+	for (i = 0; i < popsize; i++) {
+		for (j = 0; j < nreal; j++)
+			xb[i][j] = parent_pop->ind[i].xreal[j];
+		for (j = 0; j < nobj; j++)
+			fxb[i][j] = parent_pop->ind[i].obj[j];
+	}
+	free(min_realvar);
+	free(max_realvar);
+	deallocate_memory_pop(parent_pop, popsize);
+	deallocate_memory_pop(child_pop, popsize);
+	deallocate_memory_pop(mixed_pop, 2 * popsize);
+	free(parent_pop);
+	free(child_pop);
+	free(mixed_pop);
+	return popsize;
 }

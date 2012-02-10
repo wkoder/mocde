@@ -5,7 +5,7 @@
 # include <math.h>
 
 # include "global.h"
-# include "rand.h"
+# include "../randomlib.h"
 
 /* Routine to perform non-dominated sorting */
 void fill_nondominated_sort (population *mixed_pop, population *new_pop)

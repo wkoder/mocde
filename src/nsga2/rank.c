@@ -5,7 +5,7 @@
 # include <math.h>
 
 # include "global.h"
-# include "rand.h"
+# include "../randomlib.h"
 
 /* Function to assign rank and crowding distance to a population of size pop_size*/
 void assign_rank_and_crowding_distance (population *new_pop)

@@ -5,7 +5,7 @@
 # include <math.h>
 
 # include "global.h"
-# include "rand.h"
+# include "../randomlib.h"
 
 /* Function to perform mutation in a population */
 void mutation_pop (population *pop)

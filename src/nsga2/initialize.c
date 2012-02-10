@@ -5,7 +5,7 @@
 # include <math.h>
 
 # include "global.h"
-# include "rand.h"
+# include "../randomlib.h"
 
 /* Function to initialize a population randomly */
 void initialize_pop (population *pop)

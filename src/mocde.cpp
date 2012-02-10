@@ -10,19 +10,20 @@
 #include <iostream>
 
 #include "mocde.h"
-#include "rand.h"
 #include "randomlib.h"
 #include "benchmark.h"
 #include "util.h"
 
 #include "moead/algorithm.h"
 #include "paes/paes.h"
+#include "nsga2/global.h"
 
 //#define ORIGINAL_MOEAD_IMPL
 //#define MY_MOEAD_IMPL
 //#define MOCDE_IMPL
 #define MOCDE_PAES_IMPL
 //#define ORIGINAL_PAES_IMPL
+//#define NSGA2_IMPL
 
 MultiObjectiveCompactDifferentialEvolution *currentInstance;
 
@@ -461,7 +462,7 @@ int MultiObjectiveCompactDifferentialEvolution::solve(double **xb, double **fxb,
 	this->updateLimit = this->nicheSize / 10;
 	this->utility = new double[populationSize];
 	
-	warmup_random(randomSeed);
+	randomize(randomSeed);
 	initrandom(randomSeed * (1 << 30));
 	
 #ifndef MOCDE_PAES_IMPL
@@ -490,7 +491,7 @@ int MultiObjectiveCompactDifferentialEvolution::solve(double **xb, double **fxb,
 	MOEAD.load_parameter(populationSize, maxEvaluations/populationSize, nicheSize, updateLimit, F);
 	MOEAD.exec_emo(xb, fxb, L);
 	
-#else
+#endif
 #ifdef MY_MOEAD_IMPL
 	initSubproblems(L);
 	initNeighborhood();
@@ -547,7 +548,7 @@ int MultiObjectiveCompactDifferentialEvolution::solve(double **xb, double **fxb,
 	delete [] utility;
 	delete [] ideal;
 	
-#else
+#endif
 #ifdef MOCDE_IMPL
 	int effortForIdeal = populationSize/10;
 	int budget = maxEvaluations / (populationSize + nobj*(effortForIdeal-1));
@@ -587,7 +588,7 @@ int MultiObjectiveCompactDifferentialEvolution::solve(double **xb, double **fxb,
 	
 	for (int i = 0; i < populationSize; i++) // Get the real function value
 		function(xb[i], fxb[i]);
-#else
+#endif
 #ifdef MOCDE_PAES_IMPL
 	double u[nreal];
 	double d[nreal];
@@ -685,12 +686,10 @@ int MultiObjectiveCompactDifferentialEvolution::solve(double **xb, double **fxb,
 	return archive.size();
 #endif
 #ifdef ORIGINAL_PAES_IMPL
-	
 	return paes(xb, fxb, bounds, function, 4, nreal, nobj, nreal*30, 2, populationSize, maxEvaluations, 0, 0.01, (int)(randomSeed*(1<<30)));
-	
 #endif
-#endif
-#endif
+#ifdef NSGA2_IMPL
+	return nsga2(xb, fxb, populationSize, maxEvaluations/populationSize, 0.9, 0.01, nreal, nobj, bounds, randomSeed);
 #endif
 	
 #ifndef MOCDE_PAES_IMPL

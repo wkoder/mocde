@@ -5,7 +5,8 @@
 # include <math.h>
 
 # include "global.h"
-# include "rand.h"
+# include "../randomlib.h"
+# include "../benchmark.h"
 
 /* Routine to evaluate objective function values and constraints for a population */
 void evaluate_pop (population *pop)
@@ -22,7 +23,8 @@ void evaluate_pop (population *pop)
 void evaluate_ind (individual *ind)
 {
     int j;
-    test_problem (ind->xreal, ind->xbin, ind->gene, ind->obj, ind->constr);
+//    test_problem (ind->xreal, ind->xbin, ind->gene, ind->obj, ind->constr);
+    benchmark::evaluate(ind->xreal, ind->obj);
     if (ncon==0)
     {
         ind->constr_violation = 0.0;

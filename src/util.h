@@ -12,9 +12,8 @@
 
 using namespace std;
 
-#undef EPS
 #define EPS 1e-9
-#define INF 1e30
+#define INF 1e20
 
 namespace util {
 	string toString(double **x, int n, int m);

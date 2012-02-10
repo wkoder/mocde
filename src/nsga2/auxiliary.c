@@ -5,7 +5,6 @@
 # include <math.h>
 
 # include "global.h"
-# include "rand.h"
 
 /* Function to return the maximum of two variables */
 double maximum (double a, double b)

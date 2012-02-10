@@ -5,7 +5,7 @@
 # include <math.h>
 
 # include "global.h"
-# include "rand.h"
+# include "../randomlib.h"
 
 /* Randomized quick sort routine to sort a population based on a particular objective chosen */
 void quicksort_front_obj(population *pop, int objcount, int obj_array[], int obj_array_size)

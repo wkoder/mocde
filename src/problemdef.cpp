@@ -7,7 +7,6 @@
 
 //#include "AirfoilMOP.h"
 //#include "global.h"
-#include "rand.h"
 #include "problemdef.h"
 #include "moead/global.h"
 

@@ -5,7 +5,7 @@
 # include <math.h>
 
 # include "global.h"
-# include "rand.h"
+# include "../randomlib.h"
 
 /* Function to decode a population to find out the binary variable values based on its bit pattern */
 void decode_pop (population *pop)

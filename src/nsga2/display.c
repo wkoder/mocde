@@ -7,7 +7,7 @@
 # include <unistd.h>
 
 # include "global.h"
-# include "rand.h"
+# include "../randomlib.h"
 
 /* Function to display the current population for the subsequent generation */
 void onthefly_display (population *pop, FILE *gp, int ii)

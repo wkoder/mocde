@@ -8,9 +8,6 @@
 #ifndef PROBLEMDEF_H_
 #define PROBLEMDEF_H_
 
-//extern int nreal;
-//extern int nobj;
-
 void deb2(double *xreal, double *obj);
 void deb3(double *xreal, double *obj);
 void fonseca2(double *xreal, double *obj);

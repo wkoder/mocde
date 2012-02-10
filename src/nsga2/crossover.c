@@ -5,7 +5,7 @@
 # include <math.h>
 
 # include "global.h"
-# include "rand.h"
+# include "../randomlib.h"
 
 /* Function to cross two individuals */
 void crossover (individual *parent1, individual *parent2, individual *child1, individual *child2)

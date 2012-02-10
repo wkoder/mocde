@@ -5,7 +5,7 @@
 # include <math.h>
 
 # include "global.h"
-# include "rand.h"
+# include "../randomlib.h"
 
 /* Insert an element X into the list at location specified by NODE */
 void insert (list *node, int x)

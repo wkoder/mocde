@@ -5,7 +5,6 @@
 # include <math.h>
 
 # include "global.h"
-# include "rand.h"
 
 /* Function to allocate memory to a population */
 void allocate_memory_pop (population *pop, int size)

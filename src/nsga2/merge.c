@@ -5,7 +5,7 @@
 # include <math.h>
 
 # include "global.h"
-# include "rand.h"
+# include "../randomlib.h"
 
 /* Routine to merge two populations into one */
 void merge(population *pop1, population *pop2, population *pop3)

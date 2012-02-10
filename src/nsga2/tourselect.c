@@ -5,7 +5,7 @@
 # include <math.h>
 
 # include "global.h"
-# include "rand.h"
+# include "../randomlib.h"
 
 /* Routine for tournament selection, it creates a new_pop from old_pop by performing tournament selection and the crossover */
 void selection (population *old_pop, population *new_pop)

@@ -8,7 +8,7 @@ MAIN=nsga2r
 all:$(MAIN)
 $(MAIN):$(OBJS)
 	$(LD) $(LDFLAGS) $(OBJS) -o $(MAIN) -lm
-%.o: %.c global.h rand.h
+%.o: %.c global.h ../randomlib.h
 	$(CC) $(CFLAGS) -c $<
 clean:
 	$(RM) $(OBJS)
