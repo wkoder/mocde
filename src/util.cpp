@@ -6,6 +6,7 @@
  */
 
 #include <stdio.h>
+#include <math.h>
 
 #include "util.h"
 
@@ -44,4 +45,41 @@ void util::destroyMatrix(double ***m, int r) {
 		delete [] (*m)[i];
 	delete [] *m;
 	*m = NULL;
+}
+
+void util::printx(const char *d, double *x, int n) {
+	printf("%s = ", d);
+	for (int i = 0; i < n; i++)
+		printf("%.3f ", x[i]);
+	printf("\n");
+}
+
+double util::norm2(double *a, double *b, int n) {
+	double sum = 0;
+	for (int i = 0; i < n; i++)
+		sum += (a[i] - b[i]) * (a[i] - b[i]);
+	return sum;
+}
+
+bool util::comparePair(pair<double, int> a, pair<double, int> b) {
+	return a.first < b.first;
+}
+
+ParetoDominance util::comparePareto(double *a, double *b, int nobj) {
+	ParetoDominance cmp = EQUAL;
+	for (int i = 0; i < nobj; i++)
+		if (fabs(a[i] - b[i]) < EPS)
+			continue;
+		else if (a[i] < b[i]) // Dominates on f_i
+			if (cmp == DOMINATED)
+				return NON_DOMINATED;
+			else
+				cmp = DOMINATES;
+		else //if (a[i] > b[i]) // Dominated on f_i
+			if (cmp == DOMINATES)
+				return NON_DOMINATED;
+			else
+				cmp = DOMINATED;
+	
+	return cmp;
 }

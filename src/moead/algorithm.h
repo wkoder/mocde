@@ -27,7 +27,7 @@ public:
 
 	// execute MOEAD
 	void exec_emo(int run);
-	void exec_emo(double **x, double **fx, double **L);
+	int exec_emo(double **x, double **fx, double **L);
 
 	void save_front(char savefilename[1024]); // save the pareto front into files
 	void save_pos(char savefilename[1024]);
@@ -359,7 +359,7 @@ void CMOEAD::exec_emo(int run) {
 	idealpoint.clear();
 }
 
-void CMOEAD::exec_emo(double **x, double **fx, double **L) {
+int CMOEAD::exec_emo(double **x, double **fx, double **L) {
 	// initialization
 	nfes = 0;
 	
@@ -388,6 +388,8 @@ void CMOEAD::exec_emo(double **x, double **fx, double **L) {
 	
 	population.clear();
 	idealpoint.clear();
+	
+	return pops;
 }
 
 void CMOEAD::load_parameter(int pops, int max_gen, int niche, int limit, double prob) {
