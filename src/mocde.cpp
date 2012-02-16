@@ -180,7 +180,7 @@ int MultiObjectiveCompactDifferentialEvolution::solve(double **xb, double **fxb,
 	for (int i = 0; i < nreal; i++) {
 		double r = bounds[i][1] - bounds[i][0];
 		u[i] = bounds[i][0] + r/2;
-		d[i] = r*2;
+		d[i] = r*4;
 	}
 	
 	Individual *ind = new Individual(nreal, nobj);
@@ -272,7 +272,7 @@ int MultiObjectiveCompactDifferentialEvolution::solve(double **xb, double **fxb,
 #endif
 #ifdef MOEAD_IMPL
 //	seed = 177;
-	seed = (int)(randomSeed * (1 << 30))
+	seed = (int)(randomSeed * (1 << 30));
 	rnd_uni_init = 90.0;
 	lowBound = 0;
 	uppBound = 1;

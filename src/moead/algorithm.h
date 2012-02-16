@@ -290,7 +290,6 @@ void CMOEAD::evol_population() {
 	this->tour_selection(10, order);
 
 	for (unsigned int sub = 0; sub < order.size(); sub++) {
-
 		int c_sub = order[sub]; // random order
 
 		int type;

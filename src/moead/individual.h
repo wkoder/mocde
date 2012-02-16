@@ -37,7 +37,6 @@ CIndividual::~CIndividual() {
 void CIndividual::rnd_init() {
 	for (int n = 0; n < nreal; n++)
 		x_var[n] = lowBound + rnd_uni(&rnd_uni_init) * (uppBound - lowBound);
-
 }
 
 void CIndividual::obj_eval() {
