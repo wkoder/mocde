@@ -9,8 +9,8 @@ from subprocess import Popen, PIPE
 import os
 import random
 import sqlite3
-import sys
 import time
+import argparse
 
 class MOCDETest():
     
@@ -37,15 +37,15 @@ class MOCDETest():
                  ["uf5", 30, 2],
                  ["uf6", 30, 2],
                  ["uf7", 30, 2],
+                 ["uf8", 30, 3],
+                 ["uf9", 30, 3],
+                 ["uf10", 30, 3],
                  ["dtlz1", 12, 3],
                  ["dtlz2", 12, 3],
                  #["r_dtlz2", 12, 3],
                  ["dtlz3", 12, 3],
                  #["dtlz5im", 12, 3],
                  ["dtlz7", 12, 3],
-                 ["uf8", 30, 3],
-                 ["uf9", 30, 3],
-                 ["uf10", 30, 3],
                  ]
     
     def __init__(self, name):
@@ -70,7 +70,7 @@ class MOCDETest():
         cur = self.db.cursor()
         cur.execute("INSERT INTO runs (function, running_time, start_time) VALUES ('%s', %f, '%s')" % (function, runningTime, startTime))
         self.db.commit()
-        
+            
     def _clearDBRuns(self, function):
         cur = self.db.cursor()
         cur.execute("DELETE FROM runs WHERE function LIKE '%s'" % (function))
@@ -82,17 +82,15 @@ class MOCDETest():
         data = cur.fetchone()
         return None if data is None else data[0]
         
-    def testDimension(self, dim, times=1):
-        for test in MOCDETest.__TESTS__:
-            if test[2] == dim:
-                self.testFunction(test[0], test[1], test[2], times)
-                
     def _calculateTestsETC(self, functions):
         return map(self._calculateETC, functions)
         
-    def testFunctionName(self, function, times=1):
-        function = function.lower()
-        tests = [test for test in MOCDETest.__TESTS__ if test[0] == function or (function.endswith("*") and test[0].startswith(function[:-1]))]
+    def testFunctions(self, functions, times=1):
+        tests = []
+        for test in MOCDETest.__TESTS__:
+            if True in [self.testMatches(function, test[0], test[2]) for function in functions]:
+                tests.append(test)
+                
         startSecond = time.time()
         etcAll = self._calculateTestsETC([test[0] for test in tests])
         i = 0
@@ -105,7 +103,7 @@ class MOCDETest():
                 etcRemainingSum = sum(etcRemaining)
             print "Testing %s (%d/%d), test ETC: %s s, remaining tests ETC: %s s" % (test[0], i+1, len(tests), \
                          self._strETC(etcAll[i], times), self._strETC(etcRemainingSum, times))
-            self.testFunction(test[0], test[1], test[2], times)
+#            self.testFunction(test[0], test[1], test[2], times)
             self._printBars()
             i += 1
             
@@ -157,32 +155,27 @@ class MOCDETest():
             self._addDBRun(function, runningTime, startTime)
             print "        Test took %.2f s" % (runningTime)
 
-def _getDimension(arr):
-    if len(arr) == 1 and arr[0].endswith("d"):
+    def testMatches(self, desc, testName, testDim):
+        desc = desc.lower()
+        testName = testName.lower()
+        if desc == testName:
+            return True
+        if desc.endswith("*") and testName.startswith(desc[:-1]):
+            return True
         try:
-            return int(arr[0][:-1])
+            if desc.endswith("d") and testDim == int(desc[:-1]):
+                return True
         except:
-            pass
-    return 0
-
+            None
+        return False
+    
 if __name__ == '__main__':
-    if len(sys.argv) > 1:
-        name = sys.argv[1]
-    else:
-        name = raw_input("Test name: ")
-    if len(sys.argv) > 2:
-        times = int(sys.argv[2])
-    else:
-        times = int(raw_input("Times to run: "))
-    if len(sys.argv) > 3:
-        functions = sys.argv[3].split()
-    else:
-        functions = raw_input("Functions to test: ").split()
-    test = MOCDETest(name)
-    dimension = _getDimension(functions)
-    if not dimension:
-        for function in functions:
-            test.testFunctionName(function, times)
-    else:
-        test.testDimension(dimension, times)
+    parser = argparse.ArgumentParser(description="Runs mocDE against several test functions.")
+    parser.add_argument("functions", metavar="FUNCTION", nargs="+", help="function to test (matches '*' as wildcard and 'd' as postfix for dimension")
+    parser.add_argument("--name", "-n", help="run name")
+    parser.add_argument("--runs", "-r", type=int, help="number of times to run the tests")
+    args = parser.parse_args()
+    
+    test = MOCDETest(args.name)
+    test.testFunctions(args.functions, args.runs)
     
