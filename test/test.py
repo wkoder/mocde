@@ -85,7 +85,7 @@ class MOCDETest():
     def _calculateTestsETC(self, functions):
         return map(self._calculateETC, functions)
         
-    def testFunctions(self, functions, times=1):
+    def testFunctions(self, functions, times, populationSize, maxEvaluations, mutationRate, crossoverProbability):
         tests = []
         for test in MOCDETest.__TESTS__:
             if True in [self.testMatches(function, test[0], test[2]) for function in functions]:
@@ -103,7 +103,7 @@ class MOCDETest():
                 etcRemainingSum = sum(etcRemaining)
             print "Testing %s (%d/%d), test ETC: %s s, remaining tests ETC: %s s" % (test[0], i+1, len(tests), \
                          self._strETC(etcAll[i], times), self._strETC(etcRemainingSum, times))
-#            self.testFunction(test[0], test[1], test[2], times)
+            self.testFunction(test[0], test[1], test[2], times, populationSize, maxEvaluations, mutationRate, crossoverProbability)
             self._printBars()
             i += 1
             
@@ -118,11 +118,8 @@ class MOCDETest():
     def _strETC(self, etc, times=1):
         return "N/A" if etc is None else "%.2f" % (etc * times)
         
-    def testFunction(self, function, nreal, nobj, times=1):
+    def testFunction(self, function, nreal, nobj, times, populationSize, maxEvaluations, mutationRate, crossoverProbability):
         timeSum = 0.0
-        inputFile = open('test/test.in', 'r')
-        inputData = inputFile.read()
-        inputFile.close()
         for i in xrange(times):
             iStr = "_%d" % (i)
             if times == 1:
@@ -135,7 +132,7 @@ class MOCDETest():
             print
             print "    Running '%s' (%d/%d), run ETC: %s s, remaining runs ETC: %s s" % (" ".join(cmd[:3]), i+1, times, self._strETC(etc), self._strETC(etc, times-i))
             ran = random.random()
-            testInput = "%s\n%f\n" % (inputData, ran)
+            testInput = "%d\n%d\n%f\n%f\n%f\n" % (populationSize, maxEvaluations, mutationRate, crossoverProbability, ran)
             startTime = time.strftime("%Y-%m-%d %H:%M:%S")
             startSecond = time.time()
             
@@ -171,11 +168,17 @@ class MOCDETest():
     
 if __name__ == '__main__':
     parser = argparse.ArgumentParser(description="Runs mocDE against several test functions.")
-    parser.add_argument("functions", metavar="FUNCTION", nargs="+", help="function to test (matches '*' as wildcard and 'd' as postfix for dimension")
+    parser.add_argument("functions", metavar="FUNCTION", nargs="+", \
+                        help="function to test (matches '*' as wildcard and 'd' as postfix for dimension")
     parser.add_argument("--name", "-n", help="run name")
     parser.add_argument("--runs", "-r", type=int, help="number of times to run the tests")
+    parser.add_argument("--population", "-p", type=int, help="population size")
+    parser.add_argument("--evaluations", "-e", type=int, help="maximum number of evaluations")
+    parser.add_argument("--mutation", "-m", "--differential", "-d", type=float,  \
+                        help="mutation rate / differential variation")
+    parser.add_argument("--crossover", "-c", type=float, help="crossover probability")
     args = parser.parse_args()
     
     test = MOCDETest(args.name)
-    test.testFunctions(args.functions, args.runs)
+    test.testFunctions(args.functions, args.runs, args.population, args.evaluations, args.mutation, args.crossover)
     
