@@ -1,0 +1,6 @@
+#! /bin/bash
+
+./run-mocde $1 $2
+./run-moead $1 $2
+./run-paes $1 $2
+./run-nsga2 $1 $2

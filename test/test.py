@@ -85,7 +85,7 @@ class MOCDETest():
     def _calculateTestsETC(self, functions):
         return map(self._calculateETC, functions)
         
-    def testFunctions(self, functions, times, populationSize, maxEvaluations, mutationRate, crossoverProbability):
+    def testFunctions(self, exe, functions, times, populationSize, maxEvaluations, mutationRate, crossoverProbability):
         tests = []
         for test in MOCDETest.__TESTS__:
             if True in [self.testMatches(function, test[0], test[2]) for function in functions]:
@@ -103,7 +103,7 @@ class MOCDETest():
                 etcRemainingSum = sum(etcRemaining)
             print "Testing %s (%d/%d), test ETC: %s s, remaining tests ETC: %s s" % (test[0], i+1, len(tests), \
                          self._strETC(etcAll[i], times), self._strETC(etcRemainingSum, times))
-            self.testFunction(test[0], test[1], test[2], times, populationSize, maxEvaluations, mutationRate, crossoverProbability)
+            self.testFunction(exe, test[0], test[1], test[2], times, populationSize, maxEvaluations, mutationRate, crossoverProbability)
             self._printBars()
             i += 1
             
@@ -118,7 +118,7 @@ class MOCDETest():
     def _strETC(self, etc, times=1):
         return "N/A" if etc is None else "%.2f" % (etc * times)
         
-    def testFunction(self, function, nreal, nobj, times, populationSize, maxEvaluations, mutationRate, crossoverProbability):
+    def testFunction(self, exe, function, nreal, nobj, times, populationSize, maxEvaluations, mutationRate, crossoverProbability):
         timeSum = 0.0
         for i in xrange(times):
             iStr = "_%d" % (i)
@@ -126,7 +126,7 @@ class MOCDETest():
                 iStr = "" 
             varFile = "%s/%s%s_%s" % (self.path, function, iStr, MOCDETest.__VAR_OUT__)
             objFile = "%s/%s%s_%s" % (self.path, function, iStr, MOCDETest.__OBJ_OUT__)
-            cmd = [MOCDETest.__EXE__, function, "%s" % nreal, varFile, objFile, "--silent"]
+            cmd = [exe, function, "%s" % nreal, varFile, objFile, "--silent"]
             
             etc = self._calculateETC(function)
             print
@@ -177,8 +177,9 @@ if __name__ == '__main__':
     parser.add_argument("--mutation", "-m", "--differential", "-d", type=float,  \
                         help="mutation rate / differential variation")
     parser.add_argument("--crossover", "-c", type=float, help="crossover probability")
+    parser.add_argument("--exe", nargs="?", default=MOCDETest.__EXE__, help="executable to test")
     args = parser.parse_args()
     
     test = MOCDETest(args.name)
-    test.testFunctions(args.functions, args.runs, args.population, args.evaluations, args.mutation, args.crossover)
+    test.testFunctions(args.exe, args.functions, args.runs, args.population, args.evaluations, args.mutation, args.crossover)
     
