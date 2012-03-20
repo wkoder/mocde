@@ -17,7 +17,7 @@ public:
 	void init_population(double **L); // initialize the population
 
 	void load_parameter();
-	void load_parameter(int pops, int max_gen, int niche, int limit, double prob);
+	void load_parameter(int pops, int max_gen, int niche, int limit, double prob, int nfes);
 
 	void update_reference(CIndividual &ind); // update ideal point which is used in Tchebycheff or NBI method
 	void update_problem(CIndividual &ind, int &id, int &type); // update current solutions in the neighbourhood
@@ -51,7 +51,7 @@ public:
 //	double  rate;          //  the differential rate between solutions
 
 	int nfes; //  the number of function evluations
-
+	int maxnfes;
 };
 
 CMOEAD::CMOEAD() {
@@ -367,7 +367,7 @@ int CMOEAD::exec_emo(double **x, double **fx, double **L) {
 	init_neighbourhood();
 
 	int gen = 0;
-	while (nfes < 300000) {
+	while (nfes < maxnfes) {
 		evol_population();
 //		for (int i = 0; i < nobj; i++)
 //			cout << idealpoint[i] << " ";
@@ -391,12 +391,13 @@ int CMOEAD::exec_emo(double **x, double **fx, double **L) {
 	return pops;
 }
 
-void CMOEAD::load_parameter(int pops, int max_gen, int niche, int limit, double prob) {
+void CMOEAD::load_parameter(int pops, int max_gen, int niche, int limit, double prob, int nfes) {
 	this->pops = pops;
 	this->max_gen = max_gen;
 	this->niche = niche;
 	this->limit = limit;
 	this->prob = prob;
+	this->maxnfes = nfes;
 }
 
 void CMOEAD::load_parameter() {
@@ -413,6 +414,7 @@ void CMOEAD::load_parameter() {
 	readf >> niche;
 	readf >> limit;
 	readf >> prob;
+	maxnfes = 300000;
 //	readf>>rate;
 
 	readf.close();

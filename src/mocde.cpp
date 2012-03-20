@@ -20,9 +20,9 @@
 
 using namespace util;
 
-//#define MOEAD_IMPL
+#define MOEAD_IMPL
 //#define MY_MOEAD_IMPL
-#define MOCDE_IMPL
+//#define MOCDE_IMPL
 //#define PAES_IMPL
 //#define NSGA2_IMPL
 
@@ -293,7 +293,7 @@ int MultiObjectiveCompactDifferentialEvolution::solve(double **xb, double **fxb,
 	file.close();
 	
 	CMOEAD MOEAD;
-	MOEAD.load_parameter(populationSize, maxEvaluations/populationSize, nicheSize, updateLimit, F);
+	MOEAD.load_parameter(populationSize, maxEvaluations/populationSize, nicheSize, updateLimit, F, maxEvaluations);
 	return MOEAD.exec_emo(xb, fxb, L);
 #endif
 #ifdef MY_MOEAD_IMPL
