@@ -1,7 +1,13 @@
 /* This file contains the variable and function declarations */
 
+#include "../config.h"
+
+#ifdef NSGA2_IMPL
+
 # ifndef _GLOBAL_H_
 # define _GLOBAL_H_
+
+#include <iostream>
 
 # undef INF
 # define INF 1.0e14
@@ -130,3 +136,5 @@ void evaluate_ind (individual *ind);
 int nsga2(double **xb, double **fxb, int _popSize, int _ngen, double _pcross, double _pmut, int _nreal, int _nobj, double (*bounds)[2], double _seed);
 
 # endif
+
+#endif

@@ -1,10 +1,13 @@
 /* Routine for evaluating population members  */
 
+# include "global.h"
+
+#ifdef NSGA2_IMPL
+
 # include <stdio.h>
 # include <stdlib.h>
 # include <math.h>
 
-# include "global.h"
 # include "../randomlib.h"
 # include "../benchmark.h"
 
@@ -42,3 +45,5 @@ void evaluate_ind (individual *ind)
     }
     return;
 }
+
+#endif

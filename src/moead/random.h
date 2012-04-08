@@ -1,3 +1,7 @@
+#include "global.h"
+
+#ifdef MOEAD_IMPL
+
 #ifndef __RANDOM_H_
 #define __RANDOM_H_
 
@@ -61,5 +65,7 @@ inline double rnd_uni(long *idum)
   else return temp;
 
 }/*------End of rnd_uni()--------------------------*/
+
+#endif
 
 #endif

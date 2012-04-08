@@ -1,3 +1,5 @@
+#include "../config.h"
+
 #ifndef __GLOBAL_H_
 #define __GLOBAL_H_
 
@@ -13,11 +15,10 @@
 #include <cassert>
 #include <algorithm>
 
-
-using namespace std;
-
 #include "random.h"
 #include "../benchmark.h"
+
+using namespace std;
 
 //------------- Parameters in test instance ------------------
 

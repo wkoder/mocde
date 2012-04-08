@@ -1,10 +1,13 @@
 /* Routines for storing population data into files */
 
+# include "global.h"
+
+#ifdef NSGA2_IMPL
+
 # include <stdio.h>
 # include <stdlib.h>
 # include <math.h>
 
-# include "global.h"
 # include "../randomlib.h"
 
 /* Function to print the information of a population in a file */
@@ -91,3 +94,5 @@ void report_feasible (population *pop, FILE *fpt)
     }
     return;
 }
+
+#endif

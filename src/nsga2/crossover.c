@@ -1,10 +1,13 @@
 /* Crossover routines */
 
+# include "global.h"
+
+#ifdef NSGA2_IMPL
+
 # include <stdio.h>
 # include <stdlib.h>
 # include <math.h>
 
-# include "global.h"
 # include "../randomlib.h"
 
 /* Function to cross two individuals */
@@ -163,3 +166,5 @@ void bincross (individual *parent1, individual *parent2, individual *child1, ind
     }
     return;
 }
+
+#endif

@@ -1,10 +1,13 @@
 /* Tournamenet Selections routines */
 
+# include "global.h"
+
+#ifdef NSGA2_IMPL
+
 # include <stdio.h>
 # include <stdlib.h>
 # include <math.h>
 
-# include "global.h"
 # include "../randomlib.h"
 
 /* Routine for tournament selection, it creates a new_pop from old_pop by performing tournament selection and the crossover */
@@ -76,3 +79,5 @@ individual* tournament (individual *ind1, individual *ind2)
         return(ind2);
     }
 }
+
+#endif

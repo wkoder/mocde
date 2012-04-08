@@ -1,10 +1,13 @@
 /* Nond-domination based selection routines */
 
+# include "global.h"
+
+#ifdef NSGA2_IMPL
+
 # include <stdio.h>
 # include <stdlib.h>
 # include <math.h>
 
-# include "global.h"
 # include "../randomlib.h"
 
 /* Routine to perform non-dominated sorting */
@@ -152,3 +155,5 @@ void crowding_fill (population *mixed_pop, population *new_pop, int count, int f
     free (dist);
     return;
 }
+
+#endif

@@ -1,10 +1,13 @@
 /* Routine for mergeing two populations */
 
+# include "global.h"
+
+#ifdef NSGA2_IMPL
+
 # include <stdio.h>
 # include <stdlib.h>
 # include <math.h>
 
-# include "global.h"
 # include "../randomlib.h"
 
 /* Routine to merge two populations into one */
@@ -60,3 +63,5 @@ void copy_ind (individual *ind1, individual *ind2)
     }
     return;
 }
+
+#endif

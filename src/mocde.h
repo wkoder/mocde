@@ -5,6 +5,10 @@
  *      Author: Moises Osorio
  */
 
+#include "config.h"
+
+#ifdef MOCDE_IMPL
+
 #ifndef MULTIOBJECTIVECOMPACTDIFFERENTIALEVOLUTION_H_
 #define MULTIOBJECTIVECOMPACTDIFFERENTIALEVOLUTION_H_
 
@@ -34,3 +38,4 @@ private:
 };
 
 #endif /* MULTIOBJECTIVECOMPACTDIFFERENTIALEVOLUTION_H_ */
+#endif

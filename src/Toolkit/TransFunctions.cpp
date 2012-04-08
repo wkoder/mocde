@@ -1,5 +1,5 @@
 /*
- * Copyright © 2005 The Walking Fish Group (WFG).
+ * Copyright ï¿½ 2005 The Walking Fish Group (WFG).
  *
  * This material is provided "as is", with no warranty expressed or implied.
  * Any use is at your own risk. Permission to use or copy this software for
@@ -25,6 +25,7 @@
 
 #include "TransFunctions.h"
 
+#ifdef TOOLKIT_FUN
 
 //// Standard includes. /////////////////////////////////////////////////////
 
@@ -230,3 +231,4 @@ double TransFunctions::r_nonsep( const std::vector< double >& y, const int A )
 
   return correct_to_01( numerator / denominator );
 }
+#endif

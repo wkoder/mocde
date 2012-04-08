@@ -1,10 +1,13 @@
 /* A custom doubly linked list implemenation */
 
+# include "global.h"
+
+#ifdef NSGA2_IMPL
+
 # include <stdio.h>
 # include <stdlib.h>
 # include <math.h>
 
-# include "global.h"
 # include "../randomlib.h"
 
 /* Insert an element X into the list at location specified by NODE */
@@ -46,3 +49,5 @@ list* del (list *node)
     free (node);
     return (temp);
 }
+
+#endif

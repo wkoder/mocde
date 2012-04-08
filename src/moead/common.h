@@ -1,7 +1,10 @@
+#include "global.h"
+
+#ifdef MOEAD_IMPL
+
 #ifndef __COMMON_H_
 #define __COMMON_H_
 
-#include "global.h"
 
 void minfastsort(vector<double> &x, vector<int> &idx, int n, int m)
 {
@@ -110,4 +113,5 @@ void permutation(vector<int> &perm)
 }
 
 
+#endif
 #endif

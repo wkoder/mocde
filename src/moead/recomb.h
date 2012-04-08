@@ -1,7 +1,10 @@
+#include "global.h"
+
+#ifdef MOEAD_IMPL
+
 #ifndef _RECOMBINATION_H_
 #define _RECOMBINATION_H_
 
-#include "global.h"
 #include "individual.h"
 
 /* Routine for real polynomial mutation of an T */
@@ -308,4 +311,5 @@ void diff_evo_xoverC(CIndividual &ind0, CIndividual &ind1, CIndividual &ind2, ve
 	  }
 }
 
+#endif
 #endif

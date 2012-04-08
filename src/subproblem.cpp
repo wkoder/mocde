@@ -7,6 +7,8 @@
 
 #include "subproblem.h"
 
+#ifdef MY_MOEAD_IMPL
+
 Subproblem::Subproblem(int nreal, int nobj, int nicheSize) {
 	namda = new double[nobj];
 	table = new int[nicheSize];
@@ -20,3 +22,5 @@ Subproblem::~Subproblem() {
 	delete indiv;
 	delete saved;
 }
+
+#endif

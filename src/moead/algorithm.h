@@ -1,8 +1,11 @@
+#include "global.h"
+
+#ifdef MOEAD_IMPL
+
 #ifndef __EVOLUTION_H_
 #define __EVOLUTION_H_
 
 #include <iomanip>
-#include "global.h"
 #include "recomb.h"
 #include "common.h"
 #include "individual.h"
@@ -443,5 +446,7 @@ void CMOEAD::save_pos(char saveFilename[1024]) {
 	}
 	fout.close();
 }
+
+#endif
 
 #endif

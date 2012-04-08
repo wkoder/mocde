@@ -1,10 +1,13 @@
 /* Mutation routines */
 
+# include "global.h"
+
+#ifdef NSGA2_IMPL
+
 # include <stdio.h>
 # include <stdlib.h>
 # include <math.h>
 
-# include "global.h"
 # include "../randomlib.h"
 
 /* Function to perform mutation in a population */
@@ -99,3 +102,5 @@ void real_mutate_ind (individual *ind)
     }
     return;
 }
+
+#endif

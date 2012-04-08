@@ -1,5 +1,5 @@
 /*
- * Copyright © 2005 The Walking Fish Group (WFG).
+ * Copyright ï¿½ 2005 The Walking Fish Group (WFG).
  *
  * This material is provided "as is", with no warranty expressed or implied.
  * Any use is at your own risk. Permission to use or copy this software for
@@ -23,9 +23,9 @@
  * 2006-03-28: Added distance scaling constant D to calculate_f().
  */
 
-
 #include "FrameworkFunctions.h"
 
+#ifdef TOOLKIT_FUN
 
 //// Standard includes. /////////////////////////////////////////////////////
 
@@ -116,3 +116,5 @@ vector< double >  FrameworkFunctions::calculate_f
 
   return result;
 }
+
+#endif

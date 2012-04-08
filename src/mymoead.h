@@ -5,6 +5,10 @@
  *      Author: Moises Osorio [WCoder]
  */
 
+#include "config.h"
+
+#ifdef MY_MOEAD_IMPL
+
 #ifndef MY_MOEAD_H_
 #define MY_MOEAD_H_
 
@@ -41,3 +45,4 @@ private:
 };
 
 #endif /* MY_MOEAD_H_ */
+#endif

@@ -90,6 +90,10 @@
  *                                                                                                       *
  ********************************************************************************************************/
 
+#include "../config.h"
+
+#ifdef PAES_IMPL
+
 #include <stdlib.h>
 #include <stdio.h>
 #include <math.h>
@@ -729,3 +733,5 @@ void update_grid(sol *s) {
 	grid_pop[square]++;
 
 }
+
+#endif

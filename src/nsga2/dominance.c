@@ -1,5 +1,9 @@
 /* Domination checking routines */
 
+# include "global.h"
+
+#ifdef NSGA2_IMPL
+
 # include <stdio.h>
 # include <stdlib.h>
 # include <math.h>
@@ -86,3 +90,5 @@ int check_dominance (individual *a, individual *b)
         }
     }
 }
+
+#endif

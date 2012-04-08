@@ -1,12 +1,15 @@
 /* Routines to display the population information using gnuplot */
 
+# include "global.h"
+
+#ifdef NSGA2_IMPL
+
 # include <stdio.h>
 # include <stdlib.h>
 # include <math.h>
 # include <string.h>
 # include <unistd.h>
 
-# include "global.h"
 # include "../randomlib.h"
 
 /* Function to display the current population for the subsequent generation */
@@ -44,3 +47,5 @@ void onthefly_display (population *pop, FILE *gp, int ii)
     fclose(fpt);
     return;
 }
+
+#endif

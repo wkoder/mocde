@@ -7,6 +7,8 @@
 
 #include "individual.h"
 
+#ifdef INDIVIDUAL_H_
+
 Individual::Individual(int nreal, int nobj) {
 	this->nreal = nreal;
 	this->nobj = nobj;
@@ -32,3 +34,5 @@ void Individual::copy(Individual *ind) {
 	for (int i = 0; i < nobj; i++)
 		fx[i] = ind->fx[i];
 }
+
+#endif

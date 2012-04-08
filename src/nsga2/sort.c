@@ -1,10 +1,13 @@
 /* Routines for randomized recursive quick-sort */
 
+# include "global.h"
+
+#ifdef NSGA2_IMPL
+
 # include <stdio.h>
 # include <stdlib.h>
 # include <math.h>
 
-# include "global.h"
 # include "../randomlib.h"
 
 /* Randomized quick sort routine to sort a population based on a particular objective chosen */
@@ -90,3 +93,5 @@ void q_sort_dist(population *pop, int *dist, int left, int right)
     }
     return;
 }
+
+#endif

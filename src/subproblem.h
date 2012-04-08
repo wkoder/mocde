@@ -5,6 +5,10 @@
  *      Author: Moises Osorio [WCoder]
  */
 
+#include "config.h"
+
+#ifdef MY_MOEAD_IMPL
+
 #ifndef SUBPROBLEM_H_
 #define SUBPROBLEM_H_
 
@@ -25,3 +29,4 @@ private:
 };
 
 #endif /* SUBPROBLEM_H_ */
+#endif

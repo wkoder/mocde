@@ -26,6 +26,10 @@
  */
 
 
+#include "../config.h"
+
+#ifdef TOOLKIT_FUN
+
 #ifndef EXAMPLE_SHAPES_H
 #define EXAMPLE_SHAPES_H
 
@@ -78,4 +82,5 @@ std::vector< double > I1_shape( const std::vector< double >& t_p );
 
 }  // WFG namespace
 
+#endif
 #endif

@@ -1,5 +1,5 @@
 /*
- * Copyright © 2005 The Walking Fish Group (WFG).
+ * Copyright ï¿½ 2005 The Walking Fish Group (WFG).
  *
  * This material is provided "as is", with no warranty expressed or implied.
  * Any use is at your own risk. Permission to use or copy this software for
@@ -18,9 +18,9 @@
  * Implementation of ExampleTransitions.h.
  */
 
-
 #include "ExampleTransitions.h"
 
+#ifdef TOOLKIT_FUN
 
 //// Standard includes. /////////////////////////////////////////////////////
 
@@ -500,3 +500,5 @@ vector< double > Transitions::I4_t3
 {
   return WFG6_t2( y, k, M );
 }
+
+#endif

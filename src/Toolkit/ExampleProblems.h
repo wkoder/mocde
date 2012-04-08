@@ -21,6 +21,10 @@
  */
 
 
+#include "../config.h"
+
+#ifdef TOOLKIT_FUN
+
 #ifndef EXAMPLE_PROBLEMS_H
 #define EXAMPLE_PROBLEMS_H
 
@@ -227,4 +231,5 @@ std::vector< double > I5
 
 }  // WFG namespace
 
+#endif
 #endif

@@ -1,10 +1,12 @@
 /* Memory allocation and deallocation routines */
 
+# include "global.h"
+
+#ifdef NSGA2_IMPL
+
 # include <stdio.h>
 # include <stdlib.h>
 # include <math.h>
-
-# include "global.h"
 
 /* Function to allocate memory to a population */
 void allocate_memory_pop (population *pop, int size)
@@ -79,3 +81,5 @@ void deallocate_memory_ind (individual *ind)
     }
     return;
 }
+
+#endif

@@ -28,6 +28,7 @@
 
 #include "ExampleShapes.h"
 
+#ifdef TOOLKIT_FUN
 
 //// Standard includes. /////////////////////////////////////////////////////
 
@@ -325,3 +326,5 @@ vector< double > Shapes::I1_shape( const vector< double >& t_p )
 
   return FrameworkFunctions::calculate_f( 1.0, x, h, vector< double >( M, 1.0 ) );
 }
+
+#endif

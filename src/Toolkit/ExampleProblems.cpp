@@ -18,9 +18,9 @@
  * Implementation of ExampleProblems.h.
  */
 
-
 #include "ExampleProblems.h"
 
+#ifdef TOOLKIT_FUN
 
 //// Standard includes. /////////////////////////////////////////////////////
 
@@ -424,3 +424,5 @@ vector< double > Problems::I5
 
   return Shapes::I1_shape( y );
 }
+
+#endif

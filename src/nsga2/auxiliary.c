@@ -1,10 +1,13 @@
 /* Some utility functions (not part of the algorithm) */
 
+# include "global.h"
+
+#ifdef NSGA2_IMPL
+
 # include <stdio.h>
 # include <stdlib.h>
 # include <math.h>
 
-# include "global.h"
 
 /* Function to return the maximum of two variables */
 double maximum (double a, double b)
@@ -25,3 +28,5 @@ double minimum (double a, double b)
     }
     return (b);
 }
+
+#endif

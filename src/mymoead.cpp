@@ -5,6 +5,10 @@
  *      Author: Moises Osorio [WCoder]
  */
 
+#include "mymoead.h"
+
+#ifdef MY_MOEAD_IMPL
+
 #include <math.h>
 #include <vector>
 #include <stdio.h>
@@ -13,7 +17,6 @@
 #include <fstream>
 #include <algorithm>
 
-#include "mymoead.h"
 #include "util.h"
 #include "subproblem.h"
 #include "randomlib.h"
@@ -324,3 +327,5 @@ int MyMOEAD::solve(double **xb, double **fxb, int nreal, int nobj, int maxEvalua
 	
 	return populationSize;
 }
+
+#endif

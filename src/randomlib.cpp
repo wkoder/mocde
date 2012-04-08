@@ -150,10 +150,6 @@ int flip(float prob) {
 	
 }
 
-
-
-
-
 /* Rutina para generacion de numeros aleatorios gaussianos con
    media cero y desviacion estandar sigma.
 

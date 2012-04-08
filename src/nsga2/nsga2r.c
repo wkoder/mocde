@@ -1,11 +1,14 @@
 /* NSGA-II routine (implementation of the 'main' function) */
 
+# include "global.h"
+
+#ifdef NSGA2_IMPL
+
 # include <stdio.h>
 # include <stdlib.h>
 # include <math.h>
 # include <unistd.h>
 
-# include "global.h"
 # include "../randomlib.h"
 
 //int nreal;
@@ -523,3 +526,5 @@ int nsga2(double **xb, double **fxb, int _popSize, int _ngen, double _pcross, do
 	free(mixed_pop);
 	return popsize;
 }
+
+#endif

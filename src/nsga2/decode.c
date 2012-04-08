@@ -1,10 +1,13 @@
 /* Routines to decode the population */
 
+# include "global.h"
+
+#ifdef NSGA2_IMPL
+
 # include <stdio.h>
 # include <stdlib.h>
 # include <math.h>
 
-# include "global.h"
 # include "../randomlib.h"
 
 /* Function to decode a population to find out the binary variable values based on its bit pattern */
@@ -43,3 +46,5 @@ void decode_ind (individual *ind)
     }
     return;
 }
+
+#endif

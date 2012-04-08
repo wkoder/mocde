@@ -1,7 +1,9 @@
+#include "global.h"
+
+#ifdef MOEAD_IMPL
+
 #ifndef __INDIVIDUAL_H_
 #define __INDIVIDUAL_H_
-
-#include "global.h"
 
 class CIndividual {
 public:
@@ -153,5 +155,7 @@ void CSubproblem::operator=(const CSubproblem &sub2) {
 	table = sub2.table;
 	namda = sub2.namda;
 }
+
+#endif
 
 #endif

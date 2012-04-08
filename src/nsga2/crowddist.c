@@ -1,10 +1,12 @@
 /* Crowding distance computation routines */
 
+# include "global.h"
+
+#ifdef NSGA2_IMPL
+
 # include <stdio.h>
 # include <stdlib.h>
 # include <math.h>
-
-# include "global.h"
 
 /* Routine to compute crowding distance based on ojbective function values when the population in in the form of a list */
 void assign_crowding_distance_list (population *pop, list *lst, int front_size)
@@ -131,3 +133,5 @@ void assign_crowding_distance (population *pop, int *dist, int **obj_array, int 
     }
     return;
 }
+
+#endif
