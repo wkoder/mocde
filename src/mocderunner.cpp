@@ -23,6 +23,7 @@
 #include "paes/paes.h"
 #include "nsga2/global.h"
 #include "mymoead.h"
+#include "jmetal/PAES_main.h"
 
 using namespace std;
 
@@ -69,7 +70,7 @@ void showUsage(char *app) {
 	cout << "    --silent   Sink all output.\n";
 }
 
-int solve(double **xs, double **fxs, int n, int m, int maxEvaluations, int populationSize, double CR,
+int solve(double **xs, double **fxs, int nreal, int nobj, int maxEvaluations, int populationSize, double CR,
 				double F, double randomSeed, double (*bounds)[2], void (*function)(double *x, double *fx)) {
 	randomize(randomSeed);
 	initrandom(randomSeed * (1 << 30));
@@ -79,7 +80,12 @@ int solve(double **xs, double **fxs, int n, int m, int maxEvaluations, int popul
 	return de.solve(xs, fxs, nreal, nobj, maxEvaluations, populationSize, CR, F, randomSeed, bounds, benchmark::evaluate);
 #endif
 #ifdef PAES_IMPL
+#ifdef JMETAL
+	PAES_main paes;
+	return paes.solve(xs, fxs, nreal, nobj, maxEvaluations, populationSize, CR, F, randomSeed, bounds);
+#else
 	return paes(xs, fxs, bounds, function, 4, nreal, nobj, nreal*30, 2, populationSize, maxEvaluations, 0, 0.01, (int)(randomSeed*(1<<30)));
+#endif
 #endif
 #ifdef NSGA2_IMPL
 	return nsga2(xs, fxs, populationSize, maxEvaluations/populationSize, 0.9, 0.01, nreal, nobj, bounds, randomSeed);

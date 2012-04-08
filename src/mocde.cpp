@@ -255,4 +255,3 @@ int MultiObjectiveCompactDifferentialEvolution::solve(double **xb, double **fxb,
 }
 
 #endif
-

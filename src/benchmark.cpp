@@ -153,9 +153,20 @@ void benchmark::evaluate(double *x, double *fx) {
 //	}
 //	function(x2, fx);
 	
-	for (int i = 0; i < nreal; i++)
+	bool out01 = false;
+	bool canOut01 = false;
+	for (int i = 0; i < nreal; i++) {
 		if (x[i] < xbounds[i][0] || x[i] > xbounds[i][1])
 			cerr << "SHITTTTTTTT! Value: " << x[i] << " out of [" << xbounds[i][0] << "," << xbounds[i][1] << "]" << endl;
+		if (xbounds[i][0] < 0 || xbounds[i][1] > 1) {
+			canOut01 = true;
+			if (x[i] < 0 || x[i] > 1)
+				out01 = true;
+		}
+	}
+	if (canOut01 && !out01)
+		cerr << "WARNING: Generating values only in [0..1]" << endl;
+	
 	function(x, fx);
 }
 

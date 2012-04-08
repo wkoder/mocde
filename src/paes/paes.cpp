@@ -90,9 +90,9 @@
  *                                                                                                       *
  ********************************************************************************************************/
 
-#include "../config.h"
+#include "paes.h"
 
-#ifdef PAES_IMPL
+#ifdef PAES_H_
 
 #include <stdlib.h>
 #include <stdio.h>
@@ -100,7 +100,6 @@
 #include <string.h>
 
 #include "../benchmark.h"
-#include "paes.h"
 
 #define MAX_GENES 1000  // change as necessary
 #define MAX_OBJ 10     // change as necessary 
