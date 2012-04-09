@@ -15,6 +15,7 @@
 #include "util.h"
 #include "moead/cec09.h"
 #include "moead/global.h"
+#include "randomlib.h"
 
 using namespace benchmark;
 
@@ -34,36 +35,49 @@ double realb = 0.9;
 
 int evaluations = 0;
 void (*function)(double *x, double *fx) = NULL;
-double **xbounds;
+double **bounds;
+double *varDelta;
+double *xDelta;
 
 bool OUT = false;
 
-double **benchmark::getBounds() {
-	return xbounds;
+void checkBounds(double *x) {
+	bool canOut01 = false;
+	for (int i = 0; i < nreal; i++) {
+		if (x[i] < bounds[i][0] || x[i] > bounds[i][1])
+			cerr << "SHITTTTTTTT! Value: " << x[i] << " out of [" << bounds[i][0] << "," << bounds[i][1] << "] at evalutation #" << evaluations << endl;
+		if (bounds[i][0] < 0 || bounds[i][1] > 1) {
+			canOut01 = true;
+			if (x[i] < 0 || x[i] > 1) {
+				OUT = true;
+			}
+		}
+	}
+	
+	if (evaluations % 5000 == 0 && canOut01 && !OUT) {
+		cerr << "WARNING: Generating values only in [0..1] when in evaluation #" << evaluations << endl;
+	}
 }
 
-inline void setupBounds(double **bounds, int pos, double low, double up) {
+inline void setupBounds(int pos, double low, double up) {
 	bounds[pos][0] = low;
 	bounds[pos][1] = up;
 }
 
-void fsetup(void (*func)(double *x, double *fx), int real, int obj) {
+void fsetup(void (*func)(double *x, double *fx), int obj) {
 	function = func;
-	nreal = real;
 	nobj = obj;
 }
 
-void fsetup(void (*func)(double *x, double *fx), int real, int obj, double low, double up, double **bounds) {
-	fsetup(func, real, obj);
-	xbounds = bounds;
+void fsetup(void (*func)(double *x, double *fx), int obj, double low, double up) {
+	fsetup(func, obj);
 	
 	for (int i = 0; i < nreal; i++)
-		setupBounds(bounds, i, low, up);
+		setupBounds(i, low, up);
 }
 
-void fsetup(void (*func)(double *x, double *fx), int real, int obj, double fromlow, double tolow, double fromup, double toup, double **bounds) {
-	fsetup(func, real, obj);
-	xbounds = bounds;
+void fsetup(void (*func)(double *x, double *fx), int obj, double fromlow, double tolow, double fromup, double toup) {
+	fsetup(func, obj);
 	
 	cerr << "Setting wide bounds for the MOEA/D implementation.\n";
 	bounds[0][0] = fromlow;
@@ -71,118 +85,118 @@ void fsetup(void (*func)(double *x, double *fx), int real, int obj, double froml
 	double dlow = (tolow - fromlow) / (nreal-1);
 	double dup = (toup - fromup) / (nreal-1);
 	for (int i = 1; i < nreal; i++)
-		setupBounds(bounds, i, bounds[i-1][0] + dlow, bounds[i-1][1] + dup);
+		setupBounds(i, bounds[i-1][0] + dlow, bounds[i-1][1] + dup);
 }
 
-void benchmark::setup(char *functionName, int real, int *obj, double **bounds) {
+double **benchmark::getBounds() {
+	return bounds;
+}
+
+void benchmark::setup(char *functionName, int _nreal, int *_nobj) {
+	nreal = _nreal;
 	evaluations = 0;
+	bounds = util::createMatrix(nreal, 2);
+	xDelta = new double[nreal];
+	
 	if (strcmp(functionName, "deb2") == 0)
-		fsetup(deb2, real, 2, 0, 1, bounds);
+		fsetup(deb2, 2, 0, 1);
 	else if (strcmp(functionName, "deb3") == 0)
-		fsetup(deb3, real, 2, 0, 1, bounds);
+		fsetup(deb3, 2, 0, 1);
 	else if (strcmp(functionName, "fonseca2") == 0)
-		fsetup(fonseca2, real, 2, -4, 4, bounds);
+		fsetup(fonseca2, 2, -4, 4);
 	else if (strcmp(functionName, "kursawe") == 0)
-		fsetup(kursawe, real, 2, -5, 5, bounds);
+		fsetup(kursawe, 2, -5, 5);
 	else if (strcmp(functionName, "wfg1") == 0)
-		fsetup(wfg1, real, 2, 0, 0, 2, 2*real, bounds);
+		fsetup(wfg1, 2, 0, 0, 2, 2*real);
 	else if (strcmp(functionName, "wfg2") == 0)
-		fsetup(wfg2, real, 2, 0, 0, 2, 2*real, bounds);
+		fsetup(wfg2, 2, 0, 0, 2, 2*real);
 	else if (strcmp(functionName, "wfg6") == 0)
-		fsetup(wfg6, real, 2, 0, 0, 2, 2*real, bounds);
+		fsetup(wfg6, 2, 0, 0, 2, 2*real);
 	else if (strcmp(functionName, "dtlz1") == 0)
-		fsetup(dtlz1, real, 3, 0, 1, bounds);
+		fsetup(dtlz1, 3, 0, 1);
 	else if (strcmp(functionName, "dtlz2") == 0)
-		fsetup(dtlz2, real, 3, 0, 1, bounds);
+		fsetup(dtlz2, 3, 0, 1);
 	else if (strcmp(functionName, "r_dtlz2") == 0)
-		fsetup(r_dtlz2, real, 3, 0, 1, bounds);
+		fsetup(r_dtlz2, 3, 0, 1);
 	else if (strcmp(functionName, "dtlz3") == 0)
-		fsetup(dtlz3, real, 3, 0, 1, bounds);
+		fsetup(dtlz3, 3, 0, 1);
 	else if (strcmp(functionName, "dtlz5im") == 0)
-		fsetup(dtlz5im, real, 3, 0, 100, bounds);
+		fsetup(dtlz5im, 3, 0, 100);
 	else if (strcmp(functionName, "dtlz7") == 0)
-		fsetup(dtlz7, real, 3, 0, 100, bounds);
+		fsetup(dtlz7, 3, 0, 100);
 	else if (strcmp(functionName, "zdt1") == 0)
-		fsetup(zdt1, real, 2, 0, 1, bounds);
+		fsetup(zdt1, 2, 0, 1);
 	else if (strcmp(functionName, "zdt2") == 0)
-		fsetup(zdt2, real, 2, 0, 1, bounds);
+		fsetup(zdt2, 2, 0, 1);
 	else if (strcmp(functionName, "zdt3") == 0)
-		fsetup(zdt3, real, 2, 0, 1, bounds);
+		fsetup(zdt3, 2, 0, 1);
 	else if (strcmp(functionName, "uf1") == 0) {
-		fsetup(CEC09::UF1, real, 2, -1, 1, bounds);
-		setupBounds(bounds, 0, 0, 1);
+		fsetup(CEC09::UF1, 2, -1, 1);
+		setupBounds(0, 0, 1);
 	} else if (strcmp(functionName, "uf2") == 0) {
-		fsetup(CEC09::UF2, real, 2, -1, 1, bounds);
-		setupBounds(bounds, 0, 0, 1);
+		fsetup(CEC09::UF2, 2, -1, 1);
+		setupBounds(0, 0, 1);
 	} else if (strcmp(functionName, "uf3") == 0)
-		fsetup(CEC09::UF3, real, 2, 0, 1, bounds);
+		fsetup(CEC09::UF3, 2, 0, 1);
 	else if (strcmp(functionName, "uf4") == 0) {
-		fsetup(CEC09::UF4, real, 2, -2, 2, bounds);
-		setupBounds(bounds, 0, 0, 1);
+		fsetup(CEC09::UF4, 2, -2, 2);
+		setupBounds(0, 0, 1);
 	} else if (strcmp(functionName, "uf5") == 0) {
-		fsetup(CEC09::UF5, real, 2, -1, 1, bounds);
-		setupBounds(bounds, 0, 0, 1);
+		fsetup(CEC09::UF5, 2, -1, 1);
+		setupBounds(0, 0, 1);
 	} else if (strcmp(functionName, "uf6") == 0) {
-		fsetup(CEC09::UF6, real, 2, -1, 1, bounds);
-		setupBounds(bounds, 0, 0, 1);
+		fsetup(CEC09::UF6, 2, -1, 1);
+		setupBounds(0, 0, 1);
 	} else if (strcmp(functionName, "uf7") == 0) {
-		fsetup(CEC09::UF7, real, 2, -1, 1, bounds);
-		setupBounds(bounds, 0, 0, 1);
+		fsetup(CEC09::UF7, 2, -1, 1);
+		setupBounds(0, 0, 1);
 	} else if (strcmp(functionName, "uf8") == 0) {
-		fsetup(CEC09::UF8, real, 3, -2, 2, bounds);
-		setupBounds(bounds, 0, 0, 1);
-		setupBounds(bounds, 1, 0, 1);
+		fsetup(CEC09::UF8, 3, -2, 2);
+		setupBounds(0, 0, 1);
+		setupBounds(1, 0, 1);
 	} else if (strcmp(functionName, "uf9") == 0) {
-		fsetup(CEC09::UF9, real, 3, -2, 2, bounds);
-		setupBounds(bounds, 0, 0, 1);
-		setupBounds(bounds, 1, 0, 1);
+		fsetup(CEC09::UF9, 3, -2, 2);
+		setupBounds(0, 0, 1);
+		setupBounds(1, 0, 1);
 	} else if (strcmp(functionName, "uf10") == 0) {
-		fsetup(CEC09::UF10, real, 3, -2, 2, bounds);
-		setupBounds(bounds, 0, 0, 1);
-		setupBounds(bounds, 1, 0, 1);
+		fsetup(CEC09::UF10, 3, -2, 2);
+		setupBounds(0, 0, 1);
+		setupBounds(1, 0, 1);
 	} else {
 		printf("Benchmark instance %s not found.\n", functionName);
 		exit(EXIT_FAILURE);
 	}
 	
-	*obj = nobj;
+	// Random delta, this way the ideal point changes to avoid bias
+	varDelta = new double[nreal];
+	for (int i = 0; i < nreal; i++) {
+		varDelta[i] = rndreal(bounds[i][0], bounds[i][1]);
+		bounds[i][0] += varDelta[i];
+		bounds[i][1] += varDelta[i];
+	}
+	
+	*_nobj = nobj;
 }
 
 void benchmark::evaluate(double *x, double *fx) {
+	for (int i = 0; i < nreal; i++)
+		xDelta[i] = x[i] - varDelta[i];
+	
 	evaluations++;
-
-//	double x2[nreal];
-//	for (int i = 0; i < nreal; i++) {
-//		if (x[i] < 0 || x[i] > 1)
-//			cerr << "SHITTTTTTTT! Value: " << x[i] << endl;
-//		x2[i] = xbounds[i][0] + x[i]*(xbounds[i][1] - xbounds[i][0]);
-//	}
-//	function(x2, fx);
-	
-//	bool out01 = false;
-	bool canOut01 = false;
-	for (int i = 0; i < nreal; i++) {
-		if (x[i] < xbounds[i][0] || x[i] > xbounds[i][1])
-			cerr << "SHITTTTTTTT! Value: " << x[i] << " out of [" << xbounds[i][0] << "," << xbounds[i][1] << "] at evalutation #" << evaluations << endl;
-		if (xbounds[i][0] < 0 || xbounds[i][1] > 1) {
-			canOut01 = true;
-			if (x[i] < 0 || x[i] > 1) {
-				OUT = true;
-//				out01 = true;
-//				cerr << i << ": " << x[i] << endl;
-			}
-		}
-	}
-//	if (canOut01 && !out01)
-	if (evaluations == 100000 && canOut01 && !OUT) {
-		cerr << "WARNING: Generating values only in [0..1] when in evaluation #" << evaluations << endl;
-	}
-//	if (evaluations % 1000 == 0)
-//		cerr << evaluations << " " << canOut01 << " " << OUT << endl;
-	
-	function(x, fx);
+	checkBounds(x);
+	function(xDelta, fx);
 }
 
 int benchmark::getEvaluations() {
 	return evaluations;
+}
+
+void benchmark::destroy() {
+	util::destroyMatrix(&bounds, nreal);
+	delete [] xDelta;
+	delete [] varDelta;
+}
+
+double **benchmark::getVariableDelta() {
+	return varDelta;
 }

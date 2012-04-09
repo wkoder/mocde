@@ -93,27 +93,12 @@ int solve(double **xs, double **fxs, int nreal, int nobj, int maxEvaluations, in
 #ifdef MOEAD_IMPL
 	seed = (int)(randomSeed * (1 << 30));
 	rnd_uni_init = 90.0;
-	lowBound = 0;
-	uppBound = 1;
-	double **L = util::createMatrix(populationSize, nobj);
 	int nicheSize = nobj == 2 ? 100 : 150;
 	int updateLimit = nicheSize / 10;
-		
-	char filename[1024];
-	sprintf(filename, "resources/W%dD.dat", nobj);
-	ifstream file(filename);
-	if (!file.is_open()) {
-		cout << "File " << filename << " not found.\n";
-		exit(-1);
-	}
-	for (int i = 0; i < populationSize; i++)
-		for (int j = 0; j < nobj; j++)
-			file >> L[i][j];
-	file.close();
 	
 	CMOEAD MOEAD;
 	MOEAD.load_parameter(populationSize, maxEvaluations/populationSize, nicheSize, updateLimit, F, maxEvaluations, bounds);
-	return MOEAD.exec_emo(xs, fxs, L);
+	return MOEAD.exec_emo(xs, fxs);
 #endif
 #ifdef MY_MOEAD_IMPL
 	MyMOEAD moead;
@@ -130,9 +115,8 @@ int main(int argc, char **argv) {
 	}
 	
 	int nreal = atoi(argv[2]);
-	double **bounds = util::createMatrix(nreal, 2);
 	char *instanceName = argv[1];
-	benchmark::setup(instanceName, nreal, &nobj, bounds);
+	benchmark::setup(instanceName, nreal, &nobj);
 	
 	bool silent = argc > 5 && string(argv[5]) == "--silent";
 	if (!silent)
@@ -175,8 +159,13 @@ int main(int argc, char **argv) {
 	double **xs = util::createMatrix(populationSize, nreal);
 	double **fxs = util::createMatrix(populationSize, nobj);
 	
-	int K = solve(xs, fxs, nreal, nobj, maxEvaluations, populationSize, CR, F, randomSeed, bounds, benchmark::evaluate);
+	int K = solve(xs, fxs, nreal, nobj, maxEvaluations, populationSize, CR, F, randomSeed, benchmark::getBounds(), benchmark::evaluate);
 
+	double *varDelta = benchmark::getVariableDelta();
+	for (int i = 0; i < populationSize; i++)
+		for (int j = 0; j < nreal; j++)
+			xs[i][j] -= varDelta[j];
+	
 	ofstream psfile(argv[3]);
 	if (psfile.is_open()) {
 		psfile << util::toString(xs, K, nreal);
@@ -191,7 +180,13 @@ int main(int argc, char **argv) {
 	} else
 		cout << "Cannot open file " << argv[4];
 	
-	cout << "Evaluations: " << benchmark::getEvaluations() << endl;
+	if (maxEvaluations != benchmark::getEvaluations()) {
+		int extra = benchmark::getEvaluations() - maxEvaluations;
+		cerr << "Did " << benchmark::getEvaluations() << " evaluations instead of " << maxEvaluations 
+				<< " (" << extra << ")" << endl;
+		if (extra > 0)
+			return 1001;
+	}
 //	cout << "x* stats:\n";
 //	printStats(xs, populationSize, nreal);
 //	cout << "f(x*) stats:\n";
@@ -199,7 +194,7 @@ int main(int argc, char **argv) {
 	
 	util::destroyMatrix(&xs, populationSize);
 	util::destroyMatrix(&fxs, populationSize);
-	util::destroyMatrix(&bounds, nreal);
+	benchmark::destroy();
 
 	return EXIT_SUCCESS;
 }

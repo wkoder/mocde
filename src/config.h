@@ -18,6 +18,8 @@
 
 //#define TOOLKIT_FUN // Functions (mainly WFG) from the Toolkit directory
 
-//#define JMETAL // Implementations from JMetal: http://jmetal.sourceforge.net
+#ifdef PAES_IMPL
+#define JMETAL // Implementations from JMetal: http://jmetal.sourceforge.net
+#endif
 
 #endif /* CONFIG_H_ */

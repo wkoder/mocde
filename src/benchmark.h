@@ -13,10 +13,12 @@
 using namespace std;
 
 namespace benchmark {
-	void setup(char *instanceName, int nreal, int *nobj, double **bounds);
+	void setup(char *instanceName, int nreal, int *nobj);
 	void evaluate(double *x, double *fx);
 	int getEvaluations();
 	double **getBounds();
+	void destroy();
+	double **getVariableDelta();
 }
 
 #endif /* BENCHMARK_H_ */

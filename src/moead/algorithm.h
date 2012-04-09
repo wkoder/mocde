@@ -9,6 +9,7 @@
 #include "recomb.h"
 #include "common.h"
 #include "individual.h"
+#include "../util.h"
 
 class CMOEAD {
 public:
@@ -30,7 +31,7 @@ public:
 
 	// execute MOEAD
 	void exec_emo(int run);
-	int exec_emo(double **x, double **fx, double **L);
+	int exec_emo(double **x, double **fx);
 
 	void save_front(char savefilename[1024]); // save the pareto front into files
 	void save_pos(char savefilename[1024]);
@@ -49,6 +50,7 @@ public:
 	// algorithm parameters
 	int max_gen; //  the maximal number of generations
 	int pops; //  the population size
+	int real_pops; //  the real population size
 	int niche; //  the neighborhood size
 	int limit; //  the maximal number of solutions replaced
 	double prob; //  the neighboring selection probability
@@ -293,7 +295,7 @@ void CMOEAD::evol_population() {
 	vector<int> order;
 	this->tour_selection(10, order);
 
-	for (unsigned int sub = 0; sub < order.size(); sub++) {
+	for (unsigned int sub = 0; sub < order.size() && nfes < maxnfes; sub++) {
 		int c_sub = order[sub]; // random order
 
 		int type;
@@ -362,27 +364,36 @@ void CMOEAD::exec_emo(int run) {
 	idealpoint.clear();
 }
 
-int CMOEAD::exec_emo(double **x, double **fx, double **L) {
+int CMOEAD::exec_emo(double **x, double **fx) {
 	// initialization
 	nfes = 0;
 	
+	double **L = util::createMatrix(pops, nobj);
+	char filename[1024];
+	sprintf(filename, "resources/W%dD.dat", nobj);
+	ifstream file(filename);
+	if (!file.is_open()) {
+		cout << "File " << filename << " not found.\n";
+		exit(-1);
+	}
+	for (int i = 0; i < pops; i++)
+		for (int j = 0; j < nobj; j++)
+			file >> L[i][j];
+	file.close();
+	
 	init_population(L);
-//	init_population();
 	init_neighbourhood();
 
 	int gen = 0;
 	while (nfes < maxnfes) {
 		evol_population();
-//		for (int i = 0; i < nobj; i++)
-//			cout << idealpoint[i] << " ";
-//		cout << endl;
 		gen++;
 		if (gen % 50 == 0) {
 			comp_utility();
 		}
 	}
 	
-	for (int i = 0; i < pops; i++) {
+	for (int i = 0; i < real_pops; i++) { // Only first real_pops
 		for (int j = 0; j < nreal; j++)
 			x[i][j] = population[i].indiv.x_var[j];
 		for (int j = 0; j < nobj; j++)
@@ -391,12 +402,21 @@ int CMOEAD::exec_emo(double **x, double **fx, double **L) {
 	
 	population.clear();
 	idealpoint.clear();
+	util::destroyMatrix(&L, pops);
 	
-	return pops;
+	return real_pops;
 }
 
 void CMOEAD::load_parameter(int pops, int max_gen, int niche, int limit, double prob, int nfes, double **bounds) {
-	this->pops = pops;
+	this->real_pops = pops;
+	if (nobj == 2)
+		this->pops = 300;
+	else if (nobj == 3)
+		this->pops = 600;
+	else {
+		cerr << "Unknown number of objectives: " << nobj << endl;
+		exit(1002);
+	}
 	this->max_gen = max_gen;
 	this->niche = niche;
 	this->limit = limit;

@@ -285,7 +285,7 @@ void diff_evo_xoverB(CIndividual &ind0, CIndividual &ind1, CIndividual &ind2, CI
 	  //*/
 
 	  double lowBound = bounds[n][0];
-	  double uppBpund = bounds[n][1];
+	  double uppBound = bounds[n][1];
 
 	  // handle the boundary violation
 	  if(child.x_var[n]<lowBound){
