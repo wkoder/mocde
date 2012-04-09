@@ -36,7 +36,7 @@ AdaptiveGridArchive::AdaptiveGridArchive (int maxSize,int bisections,
 bool AdaptiveGridArchive::add(Solution * solution, int eval) {
 	int i=0;
 	Solution * aux; //Store an solution temporally
-
+	
 	while (i < solutionsList_.size()){
 	    aux = solutionsList_[i];
 	    int flag = dominance_->compare(solution,aux);
@@ -55,14 +55,14 @@ bool AdaptiveGridArchive::add(Solution * solution, int eval) {
 		} // else if
 	 	i++;
 	} // while
-
+	
 	// At this point, the solution may be inserted
 	if (size() == 0){ //The archive is empty
 		solutionsList_.push_back(solution);
 		grid_->updateGrid(this);
 		return true;
 	} //
-
+	
 	if (size() < maxSize_){ //The archive is not full
 		//cout << "Agregar " << eval << endl;
 		grid_->updateGrid(solution,this,eval); // Update the grid if applicable

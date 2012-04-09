@@ -34,9 +34,15 @@ double realb = 0.9;
 
 int evaluations = 0;
 void (*function)(double *x, double *fx) = NULL;
-double (*xbounds)[2];
+double **xbounds;
 
-inline void setupBounds(double (*bounds)[2], int pos, double low, double up) {
+bool OUT = false;
+
+double **benchmark::getBounds() {
+	return xbounds;
+}
+
+inline void setupBounds(double **bounds, int pos, double low, double up) {
 	bounds[pos][0] = low;
 	bounds[pos][1] = up;
 }
@@ -47,7 +53,7 @@ void fsetup(void (*func)(double *x, double *fx), int real, int obj) {
 	nobj = obj;
 }
 
-void fsetup(void (*func)(double *x, double *fx), int real, int obj, double low, double up, double (*bounds)[2]) {
+void fsetup(void (*func)(double *x, double *fx), int real, int obj, double low, double up, double **bounds) {
 	fsetup(func, real, obj);
 	xbounds = bounds;
 	
@@ -55,7 +61,7 @@ void fsetup(void (*func)(double *x, double *fx), int real, int obj, double low, 
 		setupBounds(bounds, i, low, up);
 }
 
-void fsetup(void (*func)(double *x, double *fx), int real, int obj, double fromlow, double tolow, double fromup, double toup, double (*bounds)[2]) {
+void fsetup(void (*func)(double *x, double *fx), int real, int obj, double fromlow, double tolow, double fromup, double toup, double **bounds) {
 	fsetup(func, real, obj);
 	xbounds = bounds;
 	
@@ -68,7 +74,7 @@ void fsetup(void (*func)(double *x, double *fx), int real, int obj, double froml
 		setupBounds(bounds, i, bounds[i-1][0] + dlow, bounds[i-1][1] + dup);
 }
 
-void benchmark::setup(char *functionName, int real, int *obj, double (*bounds)[2]) {
+void benchmark::setup(char *functionName, int real, int *obj, double **bounds) {
 	evaluations = 0;
 	if (strcmp(functionName, "deb2") == 0)
 		fsetup(deb2, real, 2, 0, 1, bounds);
@@ -153,19 +159,26 @@ void benchmark::evaluate(double *x, double *fx) {
 //	}
 //	function(x2, fx);
 	
-	bool out01 = false;
+//	bool out01 = false;
 	bool canOut01 = false;
 	for (int i = 0; i < nreal; i++) {
 		if (x[i] < xbounds[i][0] || x[i] > xbounds[i][1])
-			cerr << "SHITTTTTTTT! Value: " << x[i] << " out of [" << xbounds[i][0] << "," << xbounds[i][1] << "]" << endl;
+			cerr << "SHITTTTTTTT! Value: " << x[i] << " out of [" << xbounds[i][0] << "," << xbounds[i][1] << "] at evalutation #" << evaluations << endl;
 		if (xbounds[i][0] < 0 || xbounds[i][1] > 1) {
 			canOut01 = true;
-			if (x[i] < 0 || x[i] > 1)
-				out01 = true;
+			if (x[i] < 0 || x[i] > 1) {
+				OUT = true;
+//				out01 = true;
+//				cerr << i << ": " << x[i] << endl;
+			}
 		}
 	}
-	if (canOut01 && !out01)
-		cerr << "WARNING: Generating values only in [0..1]" << endl;
+//	if (canOut01 && !out01)
+	if (evaluations == 100000 && canOut01 && !OUT) {
+		cerr << "WARNING: Generating values only in [0..1] when in evaluation #" << evaluations << endl;
+	}
+//	if (evaluations % 1000 == 0)
+//		cerr << evaluations << " " << canOut01 << " " << OUT << endl;
 	
 	function(x, fx);
 }

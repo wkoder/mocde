@@ -148,10 +148,10 @@ double gl_largest[MAX_OBJ];
 int grid_pop[MAX_LOC]; // the array holding the population residing in each grid location
 
 void (*problem)(double *x, double *fx);
-double (*bounds)[2];
+double **bounds;
 int parameters;
 
-int paes(double **xb, double **fxb, double (*_bounds)[2], void (*_problem)(double *x, double *fx), int _depth, int _parameters, int _objectives, 
+int paes(double **xb, double **fxb, double **_bounds, void (*_problem)(double *x, double *fx), int _depth, int _parameters, int _objectives, 
 		int _genes, int _alleles, int _archive, int _iterations, int _minmax, double _pm, int _seed) {
 	int i;
 	int result;

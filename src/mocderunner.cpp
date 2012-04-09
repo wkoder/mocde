@@ -71,7 +71,7 @@ void showUsage(char *app) {
 }
 
 int solve(double **xs, double **fxs, int nreal, int nobj, int maxEvaluations, int populationSize, double CR,
-				double F, double randomSeed, double (*bounds)[2], void (*function)(double *x, double *fx)) {
+				double F, double randomSeed, double **bounds, void (*function)(double *x, double *fx)) {
 	randomize(randomSeed);
 	initrandom(randomSeed * (1 << 30));
 	
@@ -112,12 +112,12 @@ int solve(double **xs, double **fxs, int nreal, int nobj, int maxEvaluations, in
 	file.close();
 	
 	CMOEAD MOEAD;
-	MOEAD.load_parameter(populationSize, maxEvaluations/populationSize, nicheSize, updateLimit, F, maxEvaluations);
+	MOEAD.load_parameter(populationSize, maxEvaluations/populationSize, nicheSize, updateLimit, F, maxEvaluations, bounds);
 	return MOEAD.exec_emo(xs, fxs, L);
 #endif
 #ifdef MY_MOEAD_IMPL
 	MyMOEAD moead;
-	return moead.solve(xs, fxs, nobj, maxEvaluations, populationSize, CR, F, randomSeed, bounds);
+	return moead.solve(xs, fxs, nreal, nobj, maxEvaluations, populationSize, CR, F, bounds);
 #endif
 }
 
@@ -130,7 +130,7 @@ int main(int argc, char **argv) {
 	}
 	
 	int nreal = atoi(argv[2]);
-	double bounds[nreal][2];
+	double **bounds = util::createMatrix(nreal, 2);
 	char *instanceName = argv[1];
 	benchmark::setup(instanceName, nreal, &nobj, bounds);
 	
@@ -199,6 +199,7 @@ int main(int argc, char **argv) {
 	
 	util::destroyMatrix(&xs, populationSize);
 	util::destroyMatrix(&fxs, populationSize);
+	util::destroyMatrix(&bounds, nreal);
 
 	return EXIT_SUCCESS;
 }

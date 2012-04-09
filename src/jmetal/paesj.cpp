@@ -108,7 +108,6 @@ SolutionSet * paes::execute() {
 
       // Check dominance
       int flag = dominance->compare(solution,mutatedIndividual);
-
       if (flag == 1) { //If mutate solution dominate
         solution = new Solution(mutatedIndividual);
         archive->add(mutatedIndividual,evaluations );
@@ -119,8 +118,6 @@ SolutionSet * paes::execute() {
 //          //solution = test(solution,mutatedIndividual,archive);
         }
       }
-
-
     } while (evaluations < maxEvaluations);
 
 

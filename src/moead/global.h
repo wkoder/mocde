@@ -25,7 +25,7 @@ using namespace std;
 extern int nreal;
 extern int nobj;                    //  the number of variables and objectives
 
-extern double  lowBound;
+extern double lowBound;
 extern double uppBound;   //  lower and upper bounds of variables
 
 //extern char    strTestInstance[256];

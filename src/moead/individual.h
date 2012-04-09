@@ -5,6 +5,8 @@
 #ifndef __INDIVIDUAL_H_
 #define __INDIVIDUAL_H_
 
+#include "../benchmark.h"
+
 class CIndividual {
 public:
 	CIndividual();
@@ -37,8 +39,9 @@ CIndividual::~CIndividual() {
 }
 
 void CIndividual::rnd_init() {
+	double **bounds = benchmark::getBounds();
 	for (int n = 0; n < nreal; n++)
-		x_var[n] = lowBound + rnd_uni(&rnd_uni_init) * (uppBound - lowBound);
+		x_var[n] = bounds[n][0] + rnd_uni(&rnd_uni_init) * (bounds[n][1] - bounds[n][0]);
 }
 
 void CIndividual::obj_eval() {

@@ -21,7 +21,7 @@ public:
 	virtual ~MultiObjectiveCompactDifferentialEvolution();
 	
 	int solve(double **xs, double **fxs, int n, int m, int maxEvaluations, int populationSize, double CR,
-				double F, double randomSeed, double (*bounds)[2], void (*function)(double *x, double *fx));
+				double F, double randomSeed, double **bounds, void (*function)(double *x, double *fx));
 
 	int nobj;
 	void (*function)(double *x, double *fx);
@@ -29,7 +29,7 @@ public:
 
 private:
 	double solve(double *xs, int n, int maxEvaluations, int populationSize, double CR,
-					double F, double *startingMean, double *startingStdDev, double (*bounds)[2], double (*function)(double *x));
+					double F, double *startingMean, double *startingStdDev, double **bounds, double (*function)(double *x));
 	
 	bool addToArchive(std::vector<Individual *> &archive, Individual *ind, Individual *parent);
 	

@@ -458,7 +458,7 @@ int main (int argc, char **argv)
 }
 #endif
 
-int nsga2(double **xb, double **fxb, int _popSize, int _ngen, double _pcross, double _pmut, int _nreal, int _nobj, double (*bounds)[2], double _seed) {
+int nsga2(double **xb, double **fxb, int _popSize, int _ngen, double _pcross, double _pmut, int _nreal, int _nobj, double **bounds, double _seed) {
 	int i, j;
 	population *parent_pop;
 	population *child_pop;

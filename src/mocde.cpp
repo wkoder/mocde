@@ -27,14 +27,14 @@ MultiObjectiveCompactDifferentialEvolution::~MultiObjectiveCompactDifferentialEv
 
 }
 
-void ensureBounds(double *x, double (*bounds)[2], int n) {
+void ensureBounds(double *x, double **bounds, int n) {
 	for (int i = 0; i < n; i++) {
 		x[i] = max(x[i], bounds[i][0]);
 		x[i] = min(x[i], bounds[i][1]);
 	}
 }
 
-void generateX(double *x, double *u, double *d, double (*bounds)[2], int n) {
+void generateX(double *x, double *u, double *d, double **bounds, int n) {
 	for (int i = 0; i < n; i++) {
 		x[i] = normal(u[i], d[i]);
 		while (x[i] < bounds[i][0] || x[i] > bounds[i][1]) // Until it's tight
@@ -110,9 +110,8 @@ bool MultiObjectiveCompactDifferentialEvolution::addToArchive(vector<Individual 
 	return getCrowdDistance(ind, archive) > getCrowdDistance(parent, archive); // Accept if less crowded than parent
 }
 
-
 int MultiObjectiveCompactDifferentialEvolution::solve(double **xb, double **fxb, int nreal, int nobj, int maxEvaluations, int populationSize, double CR,
-				double F, double randomSeed, double (*bounds)[2], void (*function)(double *x, double *fx)) {
+				double F, double randomSeed, double **bounds, void (*function)(double *x, double *fx)) {
 	this->nreal = nreal;
 	this->nobj = nobj;
 	this->populationSize = populationSize;

@@ -25,7 +25,7 @@ $(BIN)%.o: %.cpp
 $(BIN)%.o: %.c
 	$(CXX) $(CXXFLAGS) -c $< -o $@
 $(EXE): init
-	make -j compile
+	make -j 2 compile
 	$(CXX) $(CXXFLAGS) $(OBJS) -o $(BIN)$(EXE)
 	
 all:	clean $(EXE)

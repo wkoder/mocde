@@ -133,7 +133,7 @@ void selection (population *old_pop, population *new_pop);
 individual* tournament (individual *ind1, individual *ind2);
 void evaluate_ind (individual *ind);
 
-int nsga2(double **xb, double **fxb, int _popSize, int _ngen, double _pcross, double _pmut, int _nreal, int _nobj, double (*bounds)[2], double _seed);
+int nsga2(double **xb, double **fxb, int _popSize, int _ngen, double _pcross, double _pmut, int _nreal, int _nobj, double **bounds, double _seed);
 
 # endif
 

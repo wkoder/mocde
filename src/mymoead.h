@@ -20,7 +20,7 @@ public:
 	MyMOEAD();
 	virtual ~MyMOEAD();
 	int solve(double **xb, double **fxb, int nreal, int nobj, int maxEvaluations, int populationSize, double CR,
-					double F, double (*bounds)[2]);
+					double F, double **bounds);
 
 private:
 	Subproblem **subproblems;
@@ -31,6 +31,7 @@ private:
 	int nobj;
 	int nreal;
 	int populationSize;
+	double **bounds;
 	
 	double chebyshevScalarizing(double *fx, double *namda);
 	void initSubproblems(double **L);

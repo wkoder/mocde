@@ -20,7 +20,7 @@ public:
 	void init_population(double **L); // initialize the population
 
 	void load_parameter();
-	void load_parameter(int pops, int max_gen, int niche, int limit, double prob, int nfes);
+	void load_parameter(int pops, int max_gen, int niche, int limit, double prob, int nfes, double **bounds);
 
 	void update_reference(CIndividual &ind); // update ideal point which is used in Tchebycheff or NBI method
 	void update_problem(CIndividual &ind, int &id, int &type); // update current solutions in the neighbourhood
@@ -40,6 +40,7 @@ public:
 
 	vector<CSubproblem> population;
 	vector<double> utility;
+	double **bounds;
 
 	void operator=(const CMOEAD &moea);
 
@@ -394,13 +395,14 @@ int CMOEAD::exec_emo(double **x, double **fx, double **L) {
 	return pops;
 }
 
-void CMOEAD::load_parameter(int pops, int max_gen, int niche, int limit, double prob, int nfes) {
+void CMOEAD::load_parameter(int pops, int max_gen, int niche, int limit, double prob, int nfes, double **bounds) {
 	this->pops = pops;
 	this->max_gen = max_gen;
 	this->niche = niche;
 	this->limit = limit;
 	this->prob = prob;
 	this->maxnfes = nfes;
+	this->bounds = bounds;
 }
 
 void CMOEAD::load_parameter() {

@@ -87,7 +87,10 @@ void MyMOEAD::initSubproblems(double **L) {
 	for (int i = 0; i < populationSize; i++) {
 		Subproblem *sub = new Subproblem(nreal, nobj, nicheSize);
 		for (int j = 0; j < nreal; j++) // Random initialization
-			sub->indiv->x[j] = rndreal(0, 1);
+			sub->indiv->x[j] = rndreal(bounds[j][0], bounds[j][1]);
+		for (int j = 0; j < nreal; j++)
+			if (sub->indiv->x[j] < -5 || sub->indiv->x[j] > 5)
+				cerr << "FUCKKKKKKK! " << j << ": " << sub->indiv->x[j] << " not in [" << bounds[j][0] << ", " << bounds[j][1] << "]" << endl;
 		benchmark::evaluate(sub->indiv->x, sub->indiv->fx); // Evaluate individual
 		updateIdeal(sub->indiv->fx); // Update reference point
 		sub->saved->copy(sub->indiv);
@@ -204,14 +207,10 @@ void MyMOEAD::crossover(Individual *a, Individual *b, Individual *c, Individual 
 		else
 			child->x[i] = a->x[i];
 		
-//		if (child->x[i] < xbounds[i][0])
-//			child->x[i] = rndreal(xbounds[i][0], a->x[i]);
-//		if (child->x[i] > xbounds[i][1])
-//			child->x[i] = r
-		if (child->x[i] < 0)
-			child->x[i] = rndreal(0, a->x[i]);
-		if (child->x[i] > 1)
-			child->x[i] = rndreal(a->x[i], 1);
+		if (child->x[i] < bounds[i][0])
+			child->x[i] = rndreal(bounds[i][0], a->x[i]);
+		if (child->x[i] > bounds[i][1])
+			child->x[i] = rndreal(a->x[i], bounds[i][1]);
 	}
 }
 
@@ -220,8 +219,8 @@ void MyMOEAD::mutation(Individual *ind, double rate) {
 	for (int j = 0; j < nreal; j++)
 		if (flip(rate)) {
 			double y = ind->x[j];
-			double yl = 0;
-			double yu = 1;
+			double yl = bounds[j][0];
+			double yu = bounds[j][1];
 			double delta1 = (y - yl) / (yu - yl);
 			double delta2 = (yu - y) / (yu - yl);
 			double rnd = rndreal(0, 1);
@@ -247,7 +246,7 @@ void MyMOEAD::mutation(Individual *ind, double rate) {
 }
 
 int MyMOEAD::solve(double **xb, double **fxb, int nreal, int nobj, int maxEvaluations, int populationSize, double CR,
-				double F, double (*bounds)[2]) {
+				double F, double **bounds) {
 	this->nobj = nobj;
 	this->nreal = nreal;
 	this->populationSize = populationSize;
@@ -255,6 +254,7 @@ int MyMOEAD::solve(double **xb, double **fxb, int nreal, int nobj, int maxEvalua
 	this->nicheSize = nobj == 2 ? 100 : 150;
 	this->updateLimit = this->nicheSize / 10;
 	this->utility = new double[populationSize];
+	this->bounds = bounds;
 	double **L = createMatrix(populationSize, nobj);
 	
 	char filename[1024];
@@ -275,10 +275,6 @@ int MyMOEAD::solve(double **xb, double **fxb, int nreal, int nobj, int maxEvalua
 	int order[populationSize];
 	int generation = 0;
 	while (benchmark::getEvaluations() < maxEvaluations) {
-//			printx("x", subproblems[0]->indiv->x, nreal);
-//			printx("xs", subproblems[0]->saved->x, nreal);
-//			cout << endl;
-		
 		int orderSize = tourSelection(order, 10);
 		for (int i = 0; i < orderSize; i++) {
 			int subId = order[i];

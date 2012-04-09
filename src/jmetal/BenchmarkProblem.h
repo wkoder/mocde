@@ -15,7 +15,7 @@
 
 class BenchmarkProblem : public Problem {
 public:
-	BenchmarkProblem(string solutionType, int numberOfVariables = 7, int numberOfObjectives = 3, double (*bounds)[2] = NULL);
+	BenchmarkProblem(string solutionType, int numberOfVariables = 7, int numberOfObjectives = 3, double **bounds = NULL);
 	void evaluate(Solution *solution);
 
 	virtual ~BenchmarkProblem();

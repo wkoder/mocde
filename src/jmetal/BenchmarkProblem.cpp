@@ -25,7 +25,7 @@
 #include "BenchmarkProblem.h"
 #include "../benchmark.h"
 
-BenchmarkProblem::BenchmarkProblem(string solutionType, int numberOfVariables, int numberOfObjectives, double (*bounds)[2]) {
+BenchmarkProblem::BenchmarkProblem(string solutionType, int numberOfVariables, int numberOfObjectives, double **bounds) {
 	numberOfVariables_ = numberOfVariables;
 	numberOfObjectives_ = numberOfObjectives;
 	numberOfConstraints_ = 0;

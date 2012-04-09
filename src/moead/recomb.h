@@ -6,6 +6,7 @@
 #define _RECOMBINATION_H_
 
 #include "individual.h"
+#include "../benchmark.h"
 
 /* Routine for real polynomial mutation of an T */
 void realmutation(CIndividual &ind, double rate)
@@ -13,11 +14,15 @@ void realmutation(CIndividual &ind, double rate)
     double rnd, delta1, delta2, mut_pow, deltaq;
     double y, yl, yu, val, xy;
 	double eta_m = etam;
+	
+	double **bounds = benchmark::getBounds();
 
 //	int id_rnd = int(rnd_uni(&rnd_uni_init)*nvar);
 
     for (int j=0; j<nreal; j++)
     {
+    	double lowBound = bounds[j][0];
+    	double uppBound = bounds[j][1];
         if (rnd_uni(&rnd_uni_init)<=rate)
         {
             y  = ind.x_var[j];
@@ -260,6 +265,7 @@ void diff_evo_xoverB(CIndividual &ind0, CIndividual &ind1, CIndividual &ind2, CI
 {
 
 	int idx_rnd = int(rnd_uni(&rnd_uni_init)*nreal);
+	double **bounds = benchmark::getBounds(); 
 
 	for(int n=0;n<nreal;n++)
 	{
@@ -278,6 +284,8 @@ void diff_evo_xoverB(CIndividual &ind0, CIndividual &ind1, CIndividual &ind2, CI
 		  child.x_var[n] = ind0.x_var[n];
 	  //*/
 
+	  double lowBound = bounds[n][0];
+	  double uppBpund = bounds[n][1];
 
 	  // handle the boundary violation
 	  if(child.x_var[n]<lowBound){

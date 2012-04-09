@@ -19,7 +19,7 @@ public:
 	virtual ~PAES_main();
 	
 	int solve(double **xs, double **fxs, int nreal, int nobj, int maxEvaluations, int populationSize, double CR,
-					double F, double randomSeed, double (*bounds)[2]);
+					double F, double randomSeed, double **bounds);
 };
 
 

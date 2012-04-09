@@ -42,7 +42,7 @@ PAES_main::~PAES_main() {
 }
 
 int PAES_main::solve(double **xs, double **fxs, int nreal, int nobj, int maxEvaluations, int populationSize, double CR,
-				double F, double randomSeed, double (*bounds)[2]) {
+				double F, double randomSeed, double **bounds) {
 //	clock_t t_ini, t_fin;
 	Problem   * problem   ; // The problem to solve
 	Algorithm * algorithm ; // The algorithm to use
