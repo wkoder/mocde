@@ -18,7 +18,7 @@ namespace benchmark {
 	int getEvaluations();
 	double **getBounds();
 	void destroy();
-	double **getVariableDelta();
+	double *getVariableDelta();
 }
 
 #endif /* BENCHMARK_H_ */

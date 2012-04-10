@@ -70,7 +70,6 @@ double MyMOEAD::chebyshevScalarizing(double *fx, double *namda) {
 	return max;
 }
 
-
 void MyMOEAD::updateIdeal(double *fx) {
 	for (int i = 0; i < nobj; i++)
 		if (ideal[i] > fx[i])

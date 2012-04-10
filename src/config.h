@@ -10,9 +10,9 @@
 #ifndef CONFIG_H_
 #define CONFIG_H_
 
-#define MOEAD_IMPL
+//#define MOEAD_IMPL
 //#define MY_MOEAD_IMPL
-//#define MOCDE_IMPL
+#define MOCDE_IMPL
 //#define PAES_IMPL
 //#define NSGA2_IMPL
 

@@ -8,7 +8,9 @@
 #ifndef UTIL_H_
 #define UTIL_H_
 
+#include <vector>
 #include <string>
+#include "individual.h"
 
 using namespace std;
 
@@ -31,6 +33,7 @@ namespace util {
 	double norm2(double *a, double *b, int n);
 	bool comparePair(pair<double, int> a, pair<double, int> b);
 	ParetoDominance comparePareto(double *a, double *b, int nobj);
+	void removeDominated(vector<Individual *> &population);
 }
 
 #endif /* UTIL_H_ */

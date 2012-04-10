@@ -11,13 +11,18 @@
 #include <cstring>
 
 #include "benchmark.h"
-#include "problemdef.h"
 #include "util.h"
+#include "randomlib.h"
 #include "moead/cec09.h"
 #include "moead/global.h"
-#include "randomlib.h"
+#include "problems/deb.h"
+#include "problems/misc.h"
+#include "problems/zdt.h"
+#include "problems/dtlz.h"
+#include "problems/wfg.h"
 
 using namespace benchmark;
+using namespace CEC09;
 
 int nobj = 0;
 int nreal = 0;
@@ -116,50 +121,61 @@ void benchmark::setup(char *functionName, int _nreal, int *_nobj) {
 		fsetup(dtlz1, 3, 0, 1);
 	else if (strcmp(functionName, "dtlz2") == 0)
 		fsetup(dtlz2, 3, 0, 1);
-	else if (strcmp(functionName, "r_dtlz2") == 0)
-		fsetup(r_dtlz2, 3, 0, 1);
 	else if (strcmp(functionName, "dtlz3") == 0)
 		fsetup(dtlz3, 3, 0, 1);
-	else if (strcmp(functionName, "dtlz5im") == 0)
-		fsetup(dtlz5im, 3, 0, 100);
+	else if (strcmp(functionName, "dtlz4") == 0)
+		fsetup(dtlz4, 3, 0, 1);
+	else if (strcmp(functionName, "dtlz5") == 0)
+		fsetup(dtlz5, 3, 0, 1);
+	else if (strcmp(functionName, "dtlz6") == 0)
+		fsetup(dtlz6, 3, 0, 1);
 	else if (strcmp(functionName, "dtlz7") == 0)
-		fsetup(dtlz7, 3, 0, 100);
+		fsetup(dtlz7, 3, 0, 1);
+//	else if (strcmp(functionName, "r_dtlz2") == 0)
+//		fsetup(r_dtlz2, 3, 0, 1);
+//	else if (strcmp(functionName, "dtlz5im") == 0)
+//		fsetup(dtlz5im, 3, 0, 100);
 	else if (strcmp(functionName, "zdt1") == 0)
 		fsetup(zdt1, 2, 0, 1);
 	else if (strcmp(functionName, "zdt2") == 0)
 		fsetup(zdt2, 2, 0, 1);
 	else if (strcmp(functionName, "zdt3") == 0)
 		fsetup(zdt3, 2, 0, 1);
+	else if (strcmp(functionName, "zdt4") == 0) {
+		fsetup(zdt4, 2, -5, 5);
+		setupBounds(0, 0, 1);
+	} else if (strcmp(functionName, "zdt6") == 0)
+		fsetup(zdt6, 2, 0, 1);
 	else if (strcmp(functionName, "uf1") == 0) {
-		fsetup(CEC09::UF1, 2, -1, 1);
+		fsetup(UF1, 2, -1, 1);
 		setupBounds(0, 0, 1);
 	} else if (strcmp(functionName, "uf2") == 0) {
-		fsetup(CEC09::UF2, 2, -1, 1);
+		fsetup(UF2, 2, -1, 1);
 		setupBounds(0, 0, 1);
 	} else if (strcmp(functionName, "uf3") == 0)
-		fsetup(CEC09::UF3, 2, 0, 1);
+		fsetup(UF3, 2, 0, 1);
 	else if (strcmp(functionName, "uf4") == 0) {
-		fsetup(CEC09::UF4, 2, -2, 2);
+		fsetup(UF4, 2, -2, 2);
 		setupBounds(0, 0, 1);
 	} else if (strcmp(functionName, "uf5") == 0) {
-		fsetup(CEC09::UF5, 2, -1, 1);
+		fsetup(UF5, 2, -1, 1);
 		setupBounds(0, 0, 1);
 	} else if (strcmp(functionName, "uf6") == 0) {
-		fsetup(CEC09::UF6, 2, -1, 1);
+		fsetup(UF6, 2, -1, 1);
 		setupBounds(0, 0, 1);
 	} else if (strcmp(functionName, "uf7") == 0) {
-		fsetup(CEC09::UF7, 2, -1, 1);
+		fsetup(UF7, 2, -1, 1);
 		setupBounds(0, 0, 1);
 	} else if (strcmp(functionName, "uf8") == 0) {
-		fsetup(CEC09::UF8, 3, -2, 2);
+		fsetup(UF8, 3, -2, 2);
 		setupBounds(0, 0, 1);
 		setupBounds(1, 0, 1);
 	} else if (strcmp(functionName, "uf9") == 0) {
-		fsetup(CEC09::UF9, 3, -2, 2);
+		fsetup(UF9, 3, -2, 2);
 		setupBounds(0, 0, 1);
 		setupBounds(1, 0, 1);
 	} else if (strcmp(functionName, "uf10") == 0) {
-		fsetup(CEC09::UF10, 3, -2, 2);
+		fsetup(UF10, 3, -2, 2);
 		setupBounds(0, 0, 1);
 		setupBounds(1, 0, 1);
 	} else {
@@ -197,6 +213,6 @@ void benchmark::destroy() {
 	delete [] varDelta;
 }
 
-double **benchmark::getVariableDelta() {
+double *benchmark::getVariableDelta() {
 	return varDelta;
 }

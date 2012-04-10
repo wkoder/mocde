@@ -25,7 +25,6 @@ public:
 
 	int nobj;
 	void (*function)(double *x, double *fx);
-	double chebyshevScalarizing(double *fx, double *namda);
 
 private:
 	double solve(double *xs, int n, int maxEvaluations, int populationSize, double CR,
@@ -35,6 +34,14 @@ private:
 	
 	int nreal;
 	int populationSize;
+
+	// New implementation
+	void initMOEADArchive(std::vector<Individual *> &archive);
+	bool addToMOEADArchive(std::vector<Individual *> &archive, Individual *ind, Individual *parent);
+	double chebyshevScalarizing(double *fx, double *namda);
+	double **L;
+	double *ideal;
+	void updateIdeal(double *fx);
 };
 
 #endif /* MULTIOBJECTIVECOMPACTDIFFERENTIALEVOLUTION_H_ */

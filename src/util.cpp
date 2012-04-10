@@ -83,3 +83,15 @@ ParetoDominance util::comparePareto(double *a, double *b, int nobj) {
 	
 	return cmp;
 }
+
+void util::removeDominated(std::vector<Individual *> &population) {
+	for (unsigned int i = 0; i < population.size(); i++)
+		for (unsigned int j = i+1; j < population.size(); j++) {
+			ParetoDominance cmp = util::comparePareto(population[i]->fx, population[j]->fx, population[i]->nobj);
+			if (cmp == DOMINATED) {
+				population.erase(population.begin() + i);
+				i--;
+				break;
+			}
+		}
+}

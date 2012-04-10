@@ -52,20 +52,10 @@ double getCrowdDistance(Individual *ind, vector<Individual *> &archive) {
 	return indDist;
 }
 
-/**
- * Implementation of the Fisher-Yates shuffling algorithm 
- * (http://en.wikipedia.org/wiki/Fisher%E2%80%93Yates_shuffle)
- */
-void shuffle(int *x, int n) {
-	for (int i = n-1; i >= 0; i--) {
-		int j = rndint(i+1);
-		int tmp = x[i];
-		x[i] = x[j];
-		x[j] = tmp;
-	}
-}
-
 bool MultiObjectiveCompactDifferentialEvolution::addToArchive(vector<Individual *> &archive, Individual *ind, Individual *parent) {
+	if (true)
+		return addToMOEADArchive(archive, ind, parent);
+	
 	bool dominates = false;
 	vector<Individual *>::iterator it = archive.begin();
 	while (it < archive.end()) {
@@ -164,19 +154,32 @@ int MultiObjectiveCompactDifferentialEvolution::solve(double **xb, double **fxb,
 	double xt[nreal];
 	vector<Individual *> archive;
 	
+	initMOEADArchive(archive);
 	// PV initialization
 	for (int i = 0; i < nreal; i++) {
 		double r = bounds[i][1] - bounds[i][0];
 		u[i] = bounds[i][0] + r/2;
-		d[i] = r*4;
+		d[i] = r*5;
 	}
 	
 	Individual *ind = new Individual(nreal, nobj);
 	generateX(ind->x, u, d, bounds, nreal);
 	function(ind->x, ind->fx);
-	archive.push_back(ind->clone());
+	addToArchive(archive, ind, ind);
+//	archive.push_back(ind->clone());
 	Individual *off = new Individual(nreal, nobj);
 	while (benchmark::getEvaluations() < maxEvaluations) {
+		if (benchmark::getEvaluations() % 1000 == 0) {
+//			cerr << "Ideal: ";
+//			for (int i = 0; i < nobj; i++)
+//				cerr << ideal[i] << " ";
+//			cerr << endl;
+//			cerr << "Dev: ";
+//			for (int i = 0; i < nreal; i++)
+//				cerr << d[i] << " ";
+//			cerr << endl;
+		}
+		
 		// Mutation
 		generateX(xr, u, d, bounds, nreal);
 		generateX(xs, u, d, bounds, nreal);
@@ -243,6 +246,8 @@ int MultiObjectiveCompactDifferentialEvolution::solve(double **xb, double **fxb,
 	delete ind;
 	delete off;
 	
+	util::removeDominated(archive);
+	
 	for (unsigned int i = 0; i < archive.size(); i++) {
 		for (int j = 0; j < nreal; j++)
 			xb[i][j] = archive[i]->x[j];
@@ -251,6 +256,70 @@ int MultiObjectiveCompactDifferentialEvolution::solve(double **xb, double **fxb,
 	}
 	
 	return archive.size();
+}
+
+
+void MultiObjectiveCompactDifferentialEvolution::initMOEADArchive(std::vector<Individual *> &archive) {
+	ideal = new double[nobj];
+	L = util::createMatrix(populationSize, nobj);
+	
+	for (int i = 0; i < nobj; i++)
+		ideal[i] = INF;
+	
+	char filename[1024];
+	sprintf(filename, "resources/W%dD.dat", nobj);
+	ifstream file(filename);
+	if (!file.is_open()) {
+		cout << "File " << filename << " not found.\n";
+		exit(-1);
+	}
+	for (int i = 0; i < populationSize; i++)
+		for (int j = 0; j < nobj; j++)
+			file >> L[i][j];
+	file.close();
+}
+
+bool MultiObjectiveCompactDifferentialEvolution::addToMOEADArchive(std::vector<Individual *> &archive, Individual *ind, Individual *parent) {
+	updateIdeal(ind->fx);
+	if (archive.size() == 0) {
+		for (int i = 0; i < populationSize; i++)
+			archive.push_back(ind->clone());
+		
+		return true;
+	}
+	
+	bool added = false;
+	for (int i = 0; i < populationSize; i++) {
+		Individual *sub = archive[i];
+		double f1 = chebyshevScalarizing(sub->fx, L[i]);
+		double f2 = chebyshevScalarizing(ind->fx, L[i]);
+//		cerr << f1 << " " << f2 << endl;
+		if (f2 < f1) {
+			added = true;
+			sub->copy(ind);
+		}
+	}
+	
+	return added;
+}
+
+double MultiObjectiveCompactDifferentialEvolution::chebyshevScalarizing(double *fx, double *namda) {
+	double max = -INF;
+
+	for (int n = 0; n < nobj; n++) {
+		double diff = fabs(fx[n] - ideal[n]);
+		double feval = diff * (namda[n] < EPS ? 0.0001 : namda[n]);
+		if (max < feval)
+			max = feval;
+	}
+
+	return max;
+}
+
+void MultiObjectiveCompactDifferentialEvolution::updateIdeal(double *fx) {
+	for (int i = 0; i < nobj; i++)
+		if (fx[i] < ideal[i])
+			ideal[i] = fx[i];
 }
 
 #endif
