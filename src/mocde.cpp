@@ -101,7 +101,7 @@ bool MultiObjectiveCompactDifferentialEvolution::addToArchive(vector<Individual 
 }
 
 int MultiObjectiveCompactDifferentialEvolution::solve(double **xb, double **fxb, int nreal, int nobj, int maxEvaluations, int populationSize, double CR,
-				double F, double randomSeed, double **bounds, void (*function)(double *x, double *fx)) {
+				double F, double W, double randomSeed, double **bounds, void (*function)(double *x, double *fx)) {
 	this->nreal = nreal;
 	this->nobj = nobj;
 	this->populationSize = populationSize;
@@ -159,7 +159,7 @@ int MultiObjectiveCompactDifferentialEvolution::solve(double **xb, double **fxb,
 	for (int i = 0; i < nreal; i++) {
 		double r = bounds[i][1] - bounds[i][0];
 		u[i] = bounds[i][0] + r/2;
-		d[i] = r*5;
+		d[i] = r * W;
 	}
 	
 	Individual *ind = new Individual(nreal, nobj);

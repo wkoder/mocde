@@ -90,7 +90,7 @@ class MOCDETest():
     def _calculateTestsETC(self, functions):
         return map(self._calculateETC, functions)
         
-    def testFunctions(self, exe, functions, times, populationSize, maxEvaluations, mutationRate, crossoverProbability):
+    def testFunctions(self, exe, functions, times, populationSize, maxEvaluations, mutationRate, crossoverProbability, width):
         tests = []
         for test in MOCDETest.__TESTS__:
             if True in [self.testMatches(function, test[0], test[2]) for function in functions]:
@@ -108,7 +108,7 @@ class MOCDETest():
                 etcRemainingSum = sum(etcRemaining)
             print "Testing %s (%d/%d), test ETC: %s s, remaining tests ETC: %s s" % (test[0], i+1, len(tests), \
                          self._strETC(etcAll[i], times), self._strETC(etcRemainingSum, times))
-            self.testFunction(exe, test[0], test[1], test[2], times, populationSize, maxEvaluations, mutationRate, crossoverProbability)
+            self.testFunction(exe, test[0], test[1], test[2], times, populationSize, maxEvaluations, mutationRate, crossoverProbability, width)
             self._printBars()
             i += 1
             
@@ -123,7 +123,7 @@ class MOCDETest():
     def _strETC(self, etc, times=1):
         return "N/A" if etc is None else "%.2f" % (etc * times)
         
-    def testFunction(self, exe, function, nreal, nobj, times, populationSize, maxEvaluations, mutationRate, crossoverProbability):
+    def testFunction(self, exe, function, nreal, nobj, times, populationSize, maxEvaluations, mutationRate, crossoverProbability, width):
         timeSum = 0.0
         for i in xrange(times):
             iStr = "_%d" % (i)
@@ -137,7 +137,11 @@ class MOCDETest():
             print
             print "    Running '%s' (%d/%d), run ETC: %s s, remaining runs ETC: %s s" % (" ".join(cmd[:3]), i+1, times, self._strETC(etc), self._strETC(etc, times-i))
             ran = random.random()
-            testInput = "%d\n%d\n%f\n%f\n%f\n" % (populationSize, maxEvaluations, mutationRate, crossoverProbability, ran)
+            testInput = "%d\n%d\n%f\n%f\n" % (populationSize, maxEvaluations, mutationRate, crossoverProbability)
+            if width is not None:
+                testInput = "%s%f\n" % (testInput, width)
+            testInput = "%s%f\n" % (testInput, ran)
+            
             startTime = time.strftime("%Y-%m-%d %H:%M:%S")
             startSecond = time.time()
             
@@ -182,9 +186,10 @@ if __name__ == '__main__':
     parser.add_argument("--mutation", "-m", "--differential", "-d", type=float,  \
                         help="mutation rate / differential variation")
     parser.add_argument("--crossover", "-c", type=float, help="crossover probability")
+    parser.add_argument("--width", "-w", type=float, help="search width")
     parser.add_argument("--exe", nargs="?", default=MOCDETest.__EXE__, help="executable to test")
     args = parser.parse_args()
     
     test = MOCDETest(args.name)
-    test.testFunctions(args.exe, args.functions, args.runs, args.population, args.evaluations, args.mutation, args.crossover)
+    test.testFunctions(args.exe, args.functions, args.runs, args.population, args.evaluations, args.mutation, args.crossover, args.width)
     

@@ -21,7 +21,7 @@ public:
 	virtual ~MultiObjectiveCompactDifferentialEvolution();
 	
 	int solve(double **xs, double **fxs, int n, int m, int maxEvaluations, int populationSize, double CR,
-				double F, double randomSeed, double **bounds, void (*function)(double *x, double *fx));
+				double F, double W, double randomSeed, double **bounds, void (*function)(double *x, double *fx));
 
 	int nobj;
 	void (*function)(double *x, double *fx);

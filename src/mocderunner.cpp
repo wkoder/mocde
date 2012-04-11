@@ -71,13 +71,13 @@ void showUsage(char *app) {
 }
 
 int solve(double **xs, double **fxs, int nreal, int nobj, int maxEvaluations, int populationSize, double CR,
-				double F, double randomSeed, double **bounds, void (*function)(double *x, double *fx)) {
+				double F, double W, double randomSeed, double **bounds, void (*function)(double *x, double *fx)) {
 	randomize(randomSeed);
 	initrandom(randomSeed * (1 << 30));
 	
 #ifdef MOCDE_IMPL
 	MultiObjectiveCompactDifferentialEvolution de;
-	return de.solve(xs, fxs, nreal, nobj, maxEvaluations, populationSize, CR, F, randomSeed, bounds, benchmark::evaluate);
+	return de.solve(xs, fxs, nreal, nobj, maxEvaluations, populationSize, CR, F, W, randomSeed, bounds, benchmark::evaluate);
 #endif
 #ifdef PAES_IMPL
 #ifdef JMETAL
@@ -107,7 +107,7 @@ int solve(double **xs, double **fxs, int nreal, int nobj, int maxEvaluations, in
 }
 
 int main(int argc, char **argv) {
-	double F, CR, randomSeed;
+	double F, CR, randomSeed, W;
 	int maxEvaluations, populationSize, nobj;
 	if (argc < 5) {
 		showUsage(argv[0]);
@@ -147,6 +147,17 @@ int main(int argc, char **argv) {
 		cout << "Crossover probability must be in [0..1)" << endl;
 		exit(1);
 	}
+#ifdef MOCDE_IMPL
+	if (!silent)
+		cout << "Search width [0..10]: ";
+	cin >> W;
+	if (W < 0 || W > 10) {
+		cout << "Search width  must be in [0..10]" << endl;
+		exit(1);
+	}
+#else
+	W = 0;
+#endif
 	if (!silent)
 		cout << "Random seed [0..1): ";
 	cin >> randomSeed;
@@ -159,7 +170,7 @@ int main(int argc, char **argv) {
 	double **xs = util::createMatrix(populationSize, nreal);
 	double **fxs = util::createMatrix(populationSize, nobj);
 	
-	int K = solve(xs, fxs, nreal, nobj, maxEvaluations, populationSize, CR, F, randomSeed, benchmark::getBounds(), benchmark::evaluate);
+	int K = solve(xs, fxs, nreal, nobj, maxEvaluations, populationSize, CR, F, W, randomSeed, benchmark::getBounds(), benchmark::evaluate);
 
 	double *varDelta = benchmark::getVariableDelta();
 	for (int i = 0; i < populationSize; i++)

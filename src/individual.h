@@ -7,8 +7,6 @@
 
 #include "config.h"
 
-#if defined MOCDE_IMPL || defined MY_MOEAD_IMPL
-
 #ifndef INDIVIDUAL_H_
 #define INDIVIDUAL_H_
 
@@ -30,4 +28,3 @@ private:
 };
 
 #endif /* INDIVIDUAL_H_ */
-#endif
