@@ -149,10 +149,10 @@ int main(int argc, char **argv) {
 	}
 #ifdef MOCDE_IMPL
 	if (!silent)
-		cout << "Search width [0..10]: ";
+		cout << "Search width [0..15]: ";
 	cin >> W;
-	if (W < 0 || W > 10) {
-		cout << "Search width  must be in [0..10]" << endl;
+	if (W < 0 || W > 15) {
+		cout << "Search width  must be in [0..15]" << endl;
 		exit(1);
 	}
 #else

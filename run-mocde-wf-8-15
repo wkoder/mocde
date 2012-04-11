@@ -1,0 +1,10 @@
+#! /bin/bash
+
+./run-mocde-wf 8 "$1"
+./run-mocde-wf 9 "$1"
+./run-mocde-wf 10 "$1"
+./run-mocde-wf 11 "$1"
+./run-mocde-wf 12 "$1"
+./run-mocde-wf 13 "$1"
+./run-mocde-wf 14 "$1"
+./run-mocde-wf 15 "$1"
