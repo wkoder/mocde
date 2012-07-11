@@ -21,7 +21,7 @@ public:
 	virtual ~MultiObjectiveCompactDifferentialEvolution();
 	
 	int solve(double **xs, double **fxs, int n, int m, int maxEvaluations, int populationSize, double CR,
-				double F, double W, double randomSeed, double **bounds, void (*function)(double *x, double *fx));
+				double F, int maxSurvival, double randomSeed, double **bounds, void (*function)(double *x, double *fx));
 
 	int nobj;
 	void (*function)(double *x, double *fx);
@@ -34,6 +34,11 @@ private:
 	
 	int nreal;
 	int populationSize;
+	
+	double getCrowdDistance(Individual *ind, std::vector<Individual *> &archive);
+	void denormalizeSolution(double *x, double *normx, double **bounds, int nreal);
+	void sampleSolution(double *normx, double *u, double *d, int nreal);
+	double sampleValue(double mu, double sigma);
 
 	// New implementation
 	void initMOEADArchive(std::vector<Individual *> &archive);

@@ -9,14 +9,11 @@
 
 #include <stdlib.h>
 #include <string>
-#include <iostream>
-#include <iomanip>
-#include <fstream>
-#include <math.h>
 
 #include "benchmark.h"
 #include "util.h"
 #include "randomlib.h"
+#include "stats.h"
 
 #include "mocde.h"
 #include "moead/algorithm.h"
@@ -26,38 +23,6 @@
 #include "jmetal/PAES_main.h"
 
 using namespace std;
-
-void printStats(double *x, int n, int width, int precision) {
-	for (int i = 0; i < n; i++)
-		cout << setw(width) << setiosflags(ios::fixed) << setprecision(precision) << x[i] << " ";
-	cout << endl;
-}
-
-void printStats(double **x, int r, int c) {
-	double avg[c];
-	double std[c];
-	double stdr[c];
-	
-	for (int j = 0; j < c; j++) {
-		avg[j] = 0;
-		for (int i = 0; i < r; i++)
-			avg[j] += x[i][j];
-		
-		avg[j] /= r;
-		std[j] = 0;
-		for (int i = 0; i < r; i++)
-			std[j] += (x[i][j] - avg[j]) * (x[i][j] - avg[j]);
-		std[j] = sqrt(std[j] / r);
-		stdr[j] = avg[j] < EPS ? 0 : std[j] * 100 / avg[j];
-	}
-	
-	int precision = 3;
-	int width = precision + 4;
-	printStats(avg, c, width, precision);
-	printStats(std, c, width, precision);
-	printStats(stdr, c, width, precision);
-	cout << endl;
-}
 
 void showUsage(char *app) {
 	cout << "Usage:\n";
@@ -70,14 +35,19 @@ void showUsage(char *app) {
 	cout << "    --silent   Sink all output.\n";
 }
 
+#ifdef MOCDE_IMPL
 int solve(double **xs, double **fxs, int nreal, int nobj, int maxEvaluations, int populationSize, double CR,
-				double F, double W, double randomSeed, double **bounds, void (*function)(double *x, double *fx)) {
+				double F, int maxSurvival, double randomSeed, double **bounds, void (*function)(double *x, double *fx)) {
+#else
+	int solve(double **xs, double **fxs, int nreal, int nobj, int maxEvaluations, int populationSize, double CR,
+					double F, double randomSeed, double **bounds, void (*function)(double *x, double *fx)) {
+#endif
 	randomize(randomSeed);
 	initrandom(randomSeed * (1 << 30));
 	
 #ifdef MOCDE_IMPL
 	MultiObjectiveCompactDifferentialEvolution de;
-	return de.solve(xs, fxs, nreal, nobj, maxEvaluations, populationSize, CR, F, W, randomSeed, bounds, benchmark::evaluate);
+	return de.solve(xs, fxs, nreal, nobj, maxEvaluations, populationSize, CR, F, maxSurvival, randomSeed, bounds, benchmark::evaluate);
 #endif
 #ifdef PAES_IMPL
 #ifdef JMETAL
@@ -107,9 +77,9 @@ int solve(double **xs, double **fxs, int nreal, int nobj, int maxEvaluations, in
 }
 
 int main(int argc, char **argv) {
-	double F, CR, randomSeed, W;
-	int maxEvaluations, populationSize, nobj;
-	if (argc < 5) {
+	double F, CR, randomSeed;
+	int maxEvaluations, populationSize, nobj, maxSurvival;
+	if (argc < 4) {
 		showUsage(argv[0]);
 		return EXIT_FAILURE;
 	}
@@ -118,7 +88,7 @@ int main(int argc, char **argv) {
 	char *instanceName = argv[1];
 	benchmark::setup(instanceName, nreal, &nobj);
 	
-	bool silent = argc > 5 && string(argv[5]) == "--silent";
+	bool silent = argc > 4 && string(argv[4]) == "--silent";
 	if (!silent)
 		cout << "Population size: ";
 	cin >> populationSize;
@@ -149,14 +119,10 @@ int main(int argc, char **argv) {
 	}
 #ifdef MOCDE_IMPL
 	if (!silent)
-		cout << "Search width [0..15]: ";
-	cin >> W;
-	if (W < 0 || W > 15) {
-		cout << "Search width  must be in [0..15]" << endl;
-		exit(1);
-	}
-#else
-	W = 0;
+		cout << "Maximum survival: ";
+	cin >> maxSurvival;
+	if (maxSurvival <= 0) // Infinite
+		maxSurvival = 1<<30;
 #endif
 	if (!silent)
 		cout << "Random seed [0..1): ";
@@ -167,29 +133,24 @@ int main(int argc, char **argv) {
 	}
 	if (!silent)
 		cout << "Solving " << instanceName << " for " << nreal << " parameters and " << nobj << " objective functions.\n";
+	
 	double **xs = util::createMatrix(populationSize, nreal);
 	double **fxs = util::createMatrix(populationSize, nobj);
+	string filePrefix(argv[3]);
 	
-	int K = solve(xs, fxs, nreal, nobj, maxEvaluations, populationSize, CR, F, W, randomSeed, benchmark::getBounds(), benchmark::evaluate);
-
+	stats::configure(5000, filePrefix);
+#ifdef MOCDE_IMPL
+	int K = solve(xs, fxs, nreal, nobj, maxEvaluations, populationSize, CR, F, maxSurvival, randomSeed, benchmark::getBounds(), benchmark::evaluate);
+#else
+	int K = solve(xs, fxs, nreal, nobj, maxEvaluations, populationSize, CR, F, randomSeed, benchmark::getBounds(), benchmark::evaluate);
+#endif
 	double *varDelta = benchmark::getVariableDelta();
 	for (int i = 0; i < populationSize; i++)
 		for (int j = 0; j < nreal; j++)
 			xs[i][j] -= varDelta[j];
 	
-	ofstream psfile(argv[3]);
-	if (psfile.is_open()) {
-		psfile << util::toString(xs, K, nreal);
-		psfile.close();
-	} else
-		cout << "Cannot open file " << argv[3];
-
-	ofstream pffile(argv[4]);
-	if (pffile.is_open()) {
-		pffile << util::toString(fxs, K, nobj);
-		pffile.close();
-	} else
-		cout << "Cannot open file " << argv[4];
+	util::writeMatrixFile(xs, K, nreal, filePrefix + "_var.out");
+	util::writeMatrixFile(fxs, K, nobj, filePrefix + "_front.out");
 	
 	if (maxEvaluations != benchmark::getEvaluations()) {
 		int extra = benchmark::getEvaluations() - maxEvaluations;

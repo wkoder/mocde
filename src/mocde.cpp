@@ -9,15 +9,19 @@
 
 #ifdef MOCDE_IMPL
 
-#include <math.h>
 #include <stdio.h>
+#include <math.h>
+#include <boost/math/special_functions/erf.hpp>
 
 #include "randomlib.h"
 #include "benchmark.h"
+#include "stats.h"
 #include "util.h"
 #include "moead/global.h"
 
 using namespace util;
+
+static double SQRT_2 = sqrt(2.0);
 
 MultiObjectiveCompactDifferentialEvolution::MultiObjectiveCompactDifferentialEvolution() {
 	
@@ -27,23 +31,33 @@ MultiObjectiveCompactDifferentialEvolution::~MultiObjectiveCompactDifferentialEv
 
 }
 
-void ensureBounds(double *x, double **bounds, int n) {
-	for (int i = 0; i < n; i++) {
-		x[i] = max(x[i], bounds[i][0]);
-		x[i] = min(x[i], bounds[i][1]);
+double MultiObjectiveCompactDifferentialEvolution::sampleValue(double mu, double sigma) {
+	double sqrt2Sigma = SQRT_2 * sigma;
+	double erfMuNeg = boost::math::erf((mu - 1) / sqrt2Sigma);
+	double erfMuPlus = boost::math::erf((mu + 1) / sqrt2Sigma);
+	
+	double u = randreal();
+	double C = - boost::math::erf((mu + 1) / sqrt2Sigma) / (erfMuNeg - erfMuPlus);
+	return mu - sqrt2Sigma * boost::math::erf_inv((u - C) * (erfMuNeg - erfMuPlus));
+}
+
+void MultiObjectiveCompactDifferentialEvolution::denormalizeSolution(double *x, double *normx, double **bounds, int nreal) {
+	for (int i = 0; i < nreal; i++) {
+		double len = bounds[i][1] - bounds[i][0];
+		x[i] = bounds[i][0] + len/2 + normx[i]*len/2;
 	}
 }
 
-void generateX(double *x, double *u, double *d, double **bounds, int n) {
-	for (int i = 0; i < n; i++) {
-		x[i] = normal(u[i], d[i]);
-		while (x[i] < bounds[i][0] || x[i] > bounds[i][1]) // Until it's tight
-			x[i] = normal(u[i], d[i]);
+void MultiObjectiveCompactDifferentialEvolution::sampleSolution(double *normx, double *u, double *d, int nreal) {
+	for (int i = 0; i < nreal; i++) {
+		normx[i] = sampleValue(u[i], d[i]);
+		if (normx[i] < -1 || normx[i] > 1) {
+			cerr << "ERROR WITH SAMPLING! " << normx[i] << " = u: " << u[i] << " d: " << d[i] << endl;
+		}
 	}
-//	ensureBounds(x, bounds, n);
 }
 
-double getCrowdDistance(Individual *ind, vector<Individual *> &archive) {
+double MultiObjectiveCompactDifferentialEvolution::getCrowdDistance(Individual *ind, vector<Individual *> &archive) {
 	double indDist = INF;
 	for (vector<Individual *>::iterator it = archive.begin(); it < archive.end(); it++)
 		if (*it != ind)
@@ -101,52 +115,12 @@ bool MultiObjectiveCompactDifferentialEvolution::addToArchive(vector<Individual 
 }
 
 int MultiObjectiveCompactDifferentialEvolution::solve(double **xb, double **fxb, int nreal, int nobj, int maxEvaluations, int populationSize, double CR,
-				double F, double W, double randomSeed, double **bounds, void (*function)(double *x, double *fx)) {
+				double F, int maxSurvival, double randomSeed, double **bounds, void (*function)(double *x, double *fx)) {
 	this->nreal = nreal;
 	this->nobj = nobj;
 	this->populationSize = populationSize;
 	this->function = function;
 	
-	//	int effortForIdeal = populationSize/10;
-	//	int budget = maxEvaluations / (populationSize + nobj*(effortForIdeal-1));
-	//	int newPopulationSize = 100;
-	//	double u[nreal];
-	//	double d[nreal];
-	//	for (int i = nobj-1; i >= 0; i--) {
-	//		for (int j = 0; j < nreal; j++) {
-	//			double r = bounds[j][1] - bounds[j][0];
-	//			u[j] = bounds[j][0] + r/2;
-	//			d[j] = r * 0.341;
-	//		}
-	//		
-	//		currentFullNamdaIdx = i;
-	//		ideal[i] = solve(xb[i], nreal, budget*effortForIdeal, newPopulationSize, CR, F, u, d, bounds, chebyshevSimpleCost);
-	//		cout << ideal[i] << " ";
-	//	}
-	//	cout << endl;
-	//	
-	//	double dx = 1.0 / (populationSize - 1);
-	//	for (int i = 0; i < populationSize; i++) {
-	//		L[i] = new double[2];
-	//		L[i][0] = i * dx;
-	//		L[i][1] = 1 - L[i][0];
-	//	}
-	//	
-	//	for (int sub = 2; sub < populationSize; sub++) {
-	//		for (int j = 0; j < nreal; j++) {
-	//			double r = bounds[j][1] - bounds[j][0];
-	//			u[j] = bounds[j][0] + r/2;
-	//			d[j] = r * 0.341;
-	//		}
-	//		
-	//		currentNamda = L[sub-1];
-	//		solve(xb[sub], nreal, budget, newPopulationSize, CR, F, u, d, bounds, chebyshevCost);
-	//	}
-	//	
-	//	for (int i = 0; i < populationSize; i++) // Get the real function value
-	//		function(xb[i], fxb[i]);
-	//#endif
-
 	double u[nreal];
 	double d[nreal];
 	double xr[nreal];
@@ -155,21 +129,30 @@ int MultiObjectiveCompactDifferentialEvolution::solve(double **xb, double **fxb,
 	vector<Individual *> archive;
 	
 	initMOEADArchive(archive);
+	
 	// PV initialization
 	for (int i = 0; i < nreal; i++) {
-		double r = bounds[i][1] - bounds[i][0];
-		u[i] = bounds[i][0] + r/2;
-		d[i] = r * W;
+		u[i] = 0;
+		d[i] = 10;
 	}
-	
-	Individual *ind = new Individual(nreal, nobj);
-	generateX(ind->x, u, d, bounds, nreal);
-	function(ind->x, ind->fx);
-	addToArchive(archive, ind, ind);
-//	archive.push_back(ind->clone());
+
 	Individual *off = new Individual(nreal, nobj);
+	double offNormX[nreal];
+	
+	Individual *elite = new Individual(nreal, nobj);
+	double eliteNormX[nreal];
+	sampleSolution(eliteNormX, u, d, nreal);
+	denormalizeSolution(elite->x, eliteNormX, bounds, nreal);
+	function(elite->x, elite->fx);
+	addToArchive(archive, elite, elite);
+	int survivedIterations = 0; // Elitism level, persistent when > maxEvaluations
 	while (benchmark::getEvaluations() < maxEvaluations) {
-		if (benchmark::getEvaluations() % 1000 == 0) {
+//		cout << "U: " << util::toString(u, nreal) << endl;
+//		cout << "D: " << util::toString(d, nreal) << endl;
+//		cout << "E: " << util::toString(eliteNormX, nreal) << endl << endl;
+		stats::report(archive);
+		
+//		if (benchmark::getEvaluations() % 1000 == 0) {
 //			cerr << "Ideal: ";
 //			for (int i = 0; i < nobj; i++)
 //				cerr << ideal[i] << " ";
@@ -178,86 +161,92 @@ int MultiObjectiveCompactDifferentialEvolution::solve(double **xb, double **fxb,
 //			for (int i = 0; i < nreal; i++)
 //				cerr << d[i] << " ";
 //			cerr << endl;
-		}
+//		}
 		
 		// Mutation
-		generateX(xr, u, d, bounds, nreal);
-		generateX(xs, u, d, bounds, nreal);
-		generateX(xt, u, d, bounds, nreal);
+		// TODO Get sampling stats
+#ifdef RESAMPLING
+		do {
+#endif
+		sampleSolution(xr, u, d, nreal);
+		sampleSolution(xs, u, d, nreal);
+		sampleSolution(xt, u, d, nreal);
 		
+		bool wasUnfeasible = false;
 		for (int i = 0; i < nreal; i++) {
-			off->x[i] = xt[i] + F*(xr[i] - xs[i]);
-			// Ensure bounds
-			if (off->x[i] < bounds[i][0])
-				off->x[i] = bounds[i][0];
-			else if (off->x[i] > bounds[i][1])
-				off->x[i] = bounds[i][1];
-//			if (off->x[i] < bounds[i][0])
-//				off->x[i] = rndreal(bounds[i][0], xt[i]);
-//			else if (off->x[i] > bounds[i][1])
-//				off->x[i] = rndreal(xt[i], bounds[i][1]);
-		}
-		
-		// Crossover
-//		Individual *elite = archive[rndint(archive.size())];
-		for (int i = 0; i < nreal; i++)
-			if (!flip(CR))
-				off->x[i] = ind->x[i];
-		
-		// Elite selection
-		function(off->x, off->fx);
-		Individual *winner = ind;
-		Individual *loser = off;
-		ParetoDominance cmp = comparePareto(off->fx, ind->fx, nobj);
-		if (cmp == DOMINATES) {
-			addToArchive(archive, off, ind);
-			winner = off;
-			loser = ind;
-		} else if (cmp == NON_DOMINATED) {
-			if (addToArchive(archive, off, ind)) {
-				winner = off;
-				loser = ind;
+#ifdef RAND_BEST_1
+			offNormX[i] = xt[i] + F*(xr[i] - xs[i]) + F*(eliteNormX[i] - xt[i]);
+#else
+			offNormX[i] = xt[i] + F*(xr[i] - xs[i]);
+#endif
+			if (offNormX[i] < -1) {
+				offNormX[i] = -1;
+				wasUnfeasible = true;
+			} else if (offNormX[i] > 1) {
+				offNormX[i] = 1;
+				wasUnfeasible = true;
 			}
 		}
+#ifdef RESAMPLING
+		while (wasUnfeasible);
+#endif
+		
+		// Crossover
+		for (int i = 0; i < nreal; i++)
+			if (!flip(CR))
+				offNormX[i] = eliteNormX[i];
+		
+		// Elite selection
+		denormalizeSolution(off->x, offNormX, bounds, nreal);
+		function(off->x, off->fx);
+		
+		double *winner = eliteNormX;
+		double *loser = offNormX;
+		ParetoDominance cmp = comparePareto(off->fx, elite->fx, nobj);
+		bool replaceElite = false;
+		// TODO: Test Pareto dominance removal
+		if (cmp == DOMINATES || survivedIterations >= maxSurvival) {
+			addToArchive(archive, off, elite);
+			winner = offNormX;
+			loser = eliteNormX;
+			replaceElite = true;
+			survivedIterations = 0;
+		} else if (cmp == NON_DOMINATED && addToArchive(archive, off, elite)) {
+			winner = offNormX;
+			loser = eliteNormX;
+			replaceElite = true;
+			survivedIterations = 0;
+		} else
+			survivedIterations++;
 			
-		// PV update
+		// PV update TODO: Check if dominance is needed!
 		for (int i = 0; i < nreal; i++) {
-			double u2 = u[i] + (winner->x[i] - loser->x[i]) / populationSize;
-			// TODO: Improve bound ensuring!
-			u2 = max(u2, bounds[i][0]);
-			u2 = min(u2, bounds[i][1]);
-
+			double u2 = u[i] + (winner[i] - loser[i]) / populationSize;
+			u2 = max(u2, -1.0);
+			u2 = min(u2, 1.0);
 			double d2 = sqrt(fabs(d[i]*d[i] + u[i]*u[i] - u2*u2 + 
-					(winner->x[i]*winner->x[i] - loser->x[i]*loser->x[i]) / populationSize));
+					(winner[i]*winner[i] - loser[i]*loser[i]) / populationSize));
 			
 			u[i] = u2;
-//			if (d2 > d[i]+EPS)
-//				cout << "YES! " << d2-d[i] << endl;
 			d[i] = d2;
 		}
 		
-		if (winner == off)
-			ind->copy(off);
+		if (replaceElite) {
+			elite->copy(off);
+			for (int i = 0; i < nreal; i++)
+				eliteNormX[i] = offNormX[i];
+		}
 	}
+	stats::report(archive);
 	
-	//	printx("Mean", u, nreal);
-	//	printx("Dev", d, nreal);
-		
-	delete ind;
+	delete elite;
 	delete off;
 	
 	util::removeDominated(archive);
-	
-	for (unsigned int i = 0; i < archive.size(); i++) {
-		for (int j = 0; j < nreal; j++)
-			xb[i][j] = archive[i]->x[j];
-		for (int j = 0; j < nobj; j++)
-			fxb[i][j] = archive[i]->fx[j];
-	}
-	
+	util::getPopulationX(xb, archive);
+	util::getPopulationFx(fxb, archive);
 	return archive.size();
 }
-
 
 void MultiObjectiveCompactDifferentialEvolution::initMOEADArchive(std::vector<Individual *> &archive) {
 	ideal = new double[nobj];

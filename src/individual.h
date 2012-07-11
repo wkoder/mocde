@@ -16,6 +16,7 @@ public:
 	virtual ~Individual();
 	
 	double *x;
+	double *normx;
 	double *fx;
 	int nreal;
 	int nobj;

@@ -5,14 +5,18 @@
  *      Author: Moises Osorio
  */
 
+#include <stdlib.h>
 #include <stdio.h>
 #include <math.h>
+#include <iostream>
+#include <iomanip>
+#include <fstream>
 
 #include "util.h"
 
-using namespace util;
+namespace util {
 
-string util::toString(double **x, int n, int m) {
+string toString(double **x, int n, int m) {
 	string s;
 	for (int i = 0; i < n; i++)
 		s += toString(x[i], m) + "\n";
@@ -20,7 +24,15 @@ string util::toString(double **x, int n, int m) {
 	return s;
 }
 
-string util::toString(double *xs, int n) {
+string toString(int x) {
+	string s;
+	char buffer[20];
+	snprintf(buffer, sizeof(buffer), "%d", x);
+	s = s.append(buffer);
+	return s;
+}
+
+string toString(double *xs, int n) {
 	string s;
 	char buffer[1024];
 	for (int i = 0; i < n; i++) {
@@ -33,39 +45,39 @@ string util::toString(double *xs, int n) {
 	return s;
 }
 
-double **util::createMatrix(int r, int c) {
+double **createMatrix(int r, int c) {
 	double **m = new double*[r];
 	for (int i = 0; i < r; i++)
 		m[i] = new double[c];
 	return m;
 }
 
-void util::destroyMatrix(double ***m, int r) {
+void destroyMatrix(double ***m, int r) {
 	for (int i = 0; i < r; i++)
 		delete [] (*m)[i];
 	delete [] *m;
 	*m = NULL;
 }
 
-void util::printx(const char *d, double *x, int n) {
+void printx(const char *d, double *x, int n) {
 	printf("%s = ", d);
 	for (int i = 0; i < n; i++)
 		printf("%.3f ", x[i]);
 	printf("\n");
 }
 
-double util::norm2(double *a, double *b, int n) {
+double norm2(double *a, double *b, int n) {
 	double sum = 0;
 	for (int i = 0; i < n; i++)
 		sum += (a[i] - b[i]) * (a[i] - b[i]);
 	return sum;
 }
 
-bool util::comparePair(pair<double, int> a, pair<double, int> b) {
+bool comparePair(pair<double, int> a, pair<double, int> b) {
 	return a.first < b.first;
 }
 
-ParetoDominance util::comparePareto(double *a, double *b, int nobj) {
+ParetoDominance comparePareto(double *a, double *b, int nobj) {
 	ParetoDominance cmp = EQUAL;
 	for (int i = 0; i < nobj; i++)
 		if (fabs(a[i] - b[i]) < EPS)
@@ -84,14 +96,44 @@ ParetoDominance util::comparePareto(double *a, double *b, int nobj) {
 	return cmp;
 }
 
-void util::removeDominated(std::vector<Individual *> &population) {
+void removeDominated(std::vector<Individual *> &population) {
 	for (unsigned int i = 0; i < population.size(); i++)
 		for (unsigned int j = i+1; j < population.size(); j++) {
-			ParetoDominance cmp = util::comparePareto(population[i]->fx, population[j]->fx, population[i]->nobj);
+			ParetoDominance cmp = comparePareto(population[i]->fx, population[j]->fx, population[i]->nobj);
 			if (cmp == DOMINATED) {
 				population.erase(population.begin() + i);
 				i--;
 				break;
 			}
 		}
+}
+
+void writeMatrixFile(double **matrix, int rows, int cols, string filename) {
+	ofstream psfile(filename.c_str());
+	if (psfile.is_open()) {
+		psfile << toString(matrix, rows, cols);
+		psfile.close();
+	} else
+		cout << "Cannot open file " << filename.c_str() << endl;
+}
+
+void getPopulationX(double **x, vector<Individual *> population) {
+	for (unsigned int i = 0; i < population.size(); i++) {
+		Individual *ind = population[i];
+		copyVector(x[i], ind->x, ind->nreal);
+	}
+}
+
+void getPopulationFx(double **fx, vector<Individual *> population) {
+	for (unsigned int i = 0; i < population.size(); i++) {
+		Individual *ind = population[i];
+		copyVector(fx[i], ind->fx, ind->nobj);
+	}
+}
+
+void copyVector(double *copy, double *x, int len) {
+	for (int i = 0; i < len; i++)
+		copy[i] = x[i];
+}
+
 }

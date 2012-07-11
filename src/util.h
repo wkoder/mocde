@@ -27,6 +27,7 @@ enum ParetoDominance {
 namespace util {
 	string toString(double **x, int n, int m);
 	string toString(double *xs, int n);
+	string toString(int x);
 	double **createMatrix(int r, int c);
 	void destroyMatrix(double***m, int r);
 	void printx(const char *d, double *x, int n);
@@ -34,6 +35,10 @@ namespace util {
 	bool comparePair(pair<double, int> a, pair<double, int> b);
 	ParetoDominance comparePareto(double *a, double *b, int nobj);
 	void removeDominated(vector<Individual *> &population);
+	void writeMatrixFile(double **matrix, int rows, int cols, string filename);
+	void getPopulationX(double **fx, vector<Individual *> population);
+	void getPopulationFx(double **fx, vector<Individual *> population);
+	void copyVector(double *copy, double *x, int len);
 }
 
 #endif /* UTIL_H_ */

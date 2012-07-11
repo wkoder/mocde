@@ -1,5 +1,5 @@
 CXX = g++
-CXXFLAGS = -O3 -g -Wall -fmessage-length=0
+CXXFLAGS = -O3 -g -Wall -fmessage-length=0 #--std=gnu++0x
 #CXXFLAGS = -g -Wall -fmessage-length=0
 SRC = src/
 BIN = bin/
