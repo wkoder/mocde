@@ -19,7 +19,9 @@
 //#define TOOLKIT_FUN // Functions (mainly WFG) from the Toolkit directory
 
 //#define RESAMPLING // If boundary constraint is being handled by re-sampling the individual, otherwise projection is used
-//#define RAND_BEST_1
+#define RAND_BEST_1
+//#define OUTPUT_INTERVAL 5000
+#define OUTPUT_INTERVAL 1e9
 
 #ifdef PAES_IMPL
 #define JMETAL // Implementations from JMetal: http://jmetal.sourceforge.net

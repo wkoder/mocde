@@ -1,0 +1,6 @@
+#! /bin/bash
+
+./run-mocde 300000 20 0
+./run-mocde 300000 20 10
+./run-mocde 300000 20 20
+./run-mocde 300000 20 30

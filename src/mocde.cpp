@@ -32,13 +32,19 @@ MultiObjectiveCompactDifferentialEvolution::~MultiObjectiveCompactDifferentialEv
 }
 
 double MultiObjectiveCompactDifferentialEvolution::sampleValue(double mu, double sigma) {
-	double sqrt2Sigma = SQRT_2 * sigma;
-	double erfMuNeg = boost::math::erf((mu - 1) / sqrt2Sigma);
-	double erfMuPlus = boost::math::erf((mu + 1) / sqrt2Sigma);
+	try {
+		double sqrt2Sigma = SQRT_2 * sigma;
+		double erfMuNeg = boost::math::erf((mu - 1) / sqrt2Sigma);
+		double erfMuPlus = boost::math::erf((mu + 1) / sqrt2Sigma);
+		
+		double u = randreal();
+		double C = - boost::math::erf((mu + 1) / sqrt2Sigma) / (erfMuNeg - erfMuPlus);
+		return mu - sqrt2Sigma * boost::math::erf_inv((u - C) * (erfMuNeg - erfMuPlus));
+	} catch (exception& e) {
+		cerr << "ERROR: Sampling method failed! mu: " << mu << ", sigma: " << sigma << ". Got: " << e.what() << endl;
+	}
 	
-	double u = randreal();
-	double C = - boost::math::erf((mu + 1) / sqrt2Sigma) / (erfMuNeg - erfMuPlus);
-	return mu - sqrt2Sigma * boost::math::erf_inv((u - C) * (erfMuNeg - erfMuPlus));
+	return mu; // Safer guess
 }
 
 void MultiObjectiveCompactDifferentialEvolution::denormalizeSolution(double *x, double *normx, double **bounds, int nreal) {
@@ -165,6 +171,7 @@ int MultiObjectiveCompactDifferentialEvolution::solve(double **xb, double **fxb,
 		
 		// Mutation
 		// TODO Get sampling stats
+		bool wasUnfeasible = false;
 #ifdef RESAMPLING
 		do {
 #endif
@@ -172,7 +179,6 @@ int MultiObjectiveCompactDifferentialEvolution::solve(double **xb, double **fxb,
 		sampleSolution(xs, u, d, nreal);
 		sampleSolution(xt, u, d, nreal);
 		
-		bool wasUnfeasible = false;
 		for (int i = 0; i < nreal; i++) {
 #ifdef RAND_BEST_1
 			offNormX[i] = xt[i] + F*(xr[i] - xs[i]) + F*(eliteNormX[i] - xt[i]);
@@ -188,7 +194,7 @@ int MultiObjectiveCompactDifferentialEvolution::solve(double **xb, double **fxb,
 			}
 		}
 #ifdef RESAMPLING
-		while (wasUnfeasible);
+		} while (wasUnfeasible);
 #endif
 		
 		// Crossover
