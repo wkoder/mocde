@@ -14,6 +14,7 @@
 #include "util.h"
 #include "randomlib.h"
 #include "stats.h"
+#include "config.h"
 
 #include "mocde.h"
 #include "moead/algorithm.h"
@@ -138,7 +139,7 @@ int main(int argc, char **argv) {
 	double **fxs = util::createMatrix(populationSize, nobj);
 	string filePrefix(argv[3]);
 	
-	stats::configure(5000, filePrefix);
+	stats::configure(OUTPUT_INTERVAL, filePrefix);
 #ifdef MOCDE_IMPL
 	int K = solve(xs, fxs, nreal, nobj, maxEvaluations, populationSize, CR, F, maxSurvival, randomSeed, benchmark::getBounds(), benchmark::evaluate);
 #else
