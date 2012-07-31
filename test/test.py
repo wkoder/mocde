@@ -29,9 +29,6 @@ class MOCDETest():
                  ["zdt3", 30, 2],
                  ["zdt4", 10, 2],
                  ["zdt6", 10, 2],
-                 #["wfg1", 30, 2],
-                 #["wfg2", 30, 2],
-                 #["wfg3", 30, 2],
                  ["uf1", 30, 2],
                  ["uf2", 30, 2],
                  ["uf3", 30, 2],
@@ -49,8 +46,6 @@ class MOCDETest():
                  ["dtlz5", 12, 3],
                  ["dtlz6", 12, 3],
                  ["dtlz7", 22, 3],
-                 #["r_dtlz2", 12, 3],
-                 #["dtlz5im", 12, 3],
                  ]
     
     def __init__(self, name):
@@ -106,7 +101,7 @@ class MOCDETest():
                 etcRemainingSum = None
             else:
                 etcRemainingSum = sum(etcRemaining)
-            print "Testing %s (%d/%d), test ETC: %s s, remaining tests ETC: %s s" % (test[0], i+1, len(tests), \
+            print "Testing %s (%d/%d), test ETC: %s, remaining tests ETC: %s" % (test[0], i+1, len(tests), \
                          self._strETC(etcAll[i], times), self._strETC(etcRemainingSum, times))
             self.testFunction(exe, test[0], test[1], test[2], times, populationSize, maxEvaluations, mutationRate, crossoverProbability, elitism)
             self._printBars()
@@ -114,14 +109,24 @@ class MOCDETest():
             
         endSecond = time.time()
         runningTime = endSecond - startSecond
-        print "Tests took %.2f s" % (runningTime)
+        print "Tests took %s" % (self._strETC(runningTime))
     
     def _printBars(self, bars=1):
         for _ in xrange(bars):
             print "-" * 89
             
     def _strETC(self, etc, times=1):
-        return "N/A" if etc is None else "%.2f" % (etc * times)
+        if etc is None:
+            return "N/A"
+        units = "s"
+        etc = etc * times
+        if etc >= 60:
+            etc = etc / 60
+            units = "m"
+        if etc >= 60:
+            etc = etc / 60
+            units = "h"
+        return "%.2f %s" % (etc, units)
         
     def testFunction(self, exe, function, nreal, nobj, times, populationSize, maxEvaluations, mutationRate, crossoverProbability, elitism):
         timeSum = 0.0
@@ -134,7 +139,7 @@ class MOCDETest():
             
             etc = self._calculateETC(function)
             print
-            print "    Running '%s' (%d/%d), run ETC: %s s, remaining runs ETC: %s s" % (" ".join(cmd[:3]), i+1, times, self._strETC(etc), self._strETC(etc, times-i))
+            print "    Running '%s' (%d/%d), run ETC: %s, remaining runs ETC: %s" % (" ".join(cmd[:3]), i+1, times, self._strETC(etc), self._strETC(etc, times-i))
             ran = random.random()
             testInput = "%d\n%d\n%f\n%f\n" % (populationSize, maxEvaluations, mutationRate, crossoverProbability)
             if elitism:
@@ -158,7 +163,7 @@ class MOCDETest():
             if i == 0:
                 self._clearDBRuns(function)
             self._addDBRun(function, runningTime, startTime)
-            print "        Test took %.2f s" % (runningTime)
+            print "        Test took %s" % (self._strETC(runningTime))
 
     def testMatches(self, desc, testName, testDim):
         desc = desc.lower()

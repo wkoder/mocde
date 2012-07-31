@@ -32,6 +32,9 @@ MultiObjectiveCompactDifferentialEvolution::~MultiObjectiveCompactDifferentialEv
 }
 
 double MultiObjectiveCompactDifferentialEvolution::sampleValue(double mu, double sigma) {
+	if (sigma < 1e-8) // Should avoid infinity error below
+		return mu;
+	
 	try {
 		double sqrt2Sigma = SQRT_2 * sigma;
 		double erfMuNeg = boost::math::erf((mu - 1) / sqrt2Sigma);
@@ -132,6 +135,11 @@ int MultiObjectiveCompactDifferentialEvolution::solve(double **xb, double **fxb,
 	double xr[nreal];
 	double xs[nreal];
 	double xt[nreal];
+#ifdef RAND_BEST_2
+	double xu[nreal];
+	double xv[nreal];
+#endif
+
 	vector<Individual *> archive;
 	
 	initMOEADArchive(archive);
@@ -153,9 +161,13 @@ int MultiObjectiveCompactDifferentialEvolution::solve(double **xb, double **fxb,
 	addToArchive(archive, elite, elite);
 	int survivedIterations = 0; // Elitism level, persistent when > maxEvaluations
 	while (benchmark::getEvaluations() < maxEvaluations) {
-//		cout << "U: " << util::toString(u, nreal) << endl;
-//		cout << "D: " << util::toString(d, nreal) << endl;
-//		cout << "E: " << util::toString(eliteNormX, nreal) << endl << endl;
+		/*
+		if (benchmark::getEvaluations() % 3000 == 0) {
+			cerr << "U: " << util::toString(u, nreal) << endl;
+			cerr << "D: " << util::toString(d, nreal) << endl;
+			cerr << "E: " << util::toString(eliteNormX, nreal) << endl << endl;
+		}
+		*/
 		stats::report(archive);
 		
 //		if (benchmark::getEvaluations() % 1000 == 0) {
@@ -171,19 +183,34 @@ int MultiObjectiveCompactDifferentialEvolution::solve(double **xb, double **fxb,
 		
 		// Mutation
 		// TODO Get sampling stats
-		bool wasUnfeasible = false;
+		bool wasUnfeasible;
 #ifdef RESAMPLING
+		int unfeasibleDuration = -1;
 		do {
+		unfeasibleDuration++;
 #endif
 		sampleSolution(xr, u, d, nreal);
 		sampleSolution(xs, u, d, nreal);
 		sampleSolution(xt, u, d, nreal);
+#ifdef RAND_BEST_2
+		sampleSolution(xu, u, d, nreal);
+		sampleSolution(xv, u, d, nreal);
+#endif
 		
+		wasUnfeasible = false;
 		for (int i = 0; i < nreal; i++) {
 #ifdef RAND_BEST_1
 			offNormX[i] = xt[i] + F*(xr[i] - xs[i]) + F*(eliteNormX[i] - xt[i]);
 #else
+#ifdef RAND_BEST_2
+			offNormX[i] = xt[i] + F*(xr[i] - xs[i]) + F*(eliteNormX[i] - xt[i]) + F*(xu[i] - xv[i]);
+#else
+#ifdef RAND_1
 			offNormX[i] = xt[i] + F*(xr[i] - xs[i]);
+#else
+#error "No mutation scheme defined!"
+#endif
+#endif
 #endif
 			if (offNormX[i] < -1) {
 				offNormX[i] = -1;
@@ -194,7 +221,7 @@ int MultiObjectiveCompactDifferentialEvolution::solve(double **xb, double **fxb,
 			}
 		}
 #ifdef RESAMPLING
-		} while (wasUnfeasible);
+		} while (wasUnfeasible && unfeasibleDuration < 20);
 #endif
 		
 		// Crossover
@@ -225,7 +252,8 @@ int MultiObjectiveCompactDifferentialEvolution::solve(double **xb, double **fxb,
 		} else
 			survivedIterations++;
 			
-		// PV update TODO: Check if dominance is needed!
+		// PV update
+		// TODO: Check if dominance is needed!
 		for (int i = 0; i < nreal; i++) {
 			double u2 = u[i] + (winner[i] - loser[i]) / populationSize;
 			u2 = max(u2, -1.0);
@@ -241,6 +269,125 @@ int MultiObjectiveCompactDifferentialEvolution::solve(double **xb, double **fxb,
 			elite->copy(off);
 			for (int i = 0; i < nreal; i++)
 				eliteNormX[i] = offNormX[i];
+		}
+	}
+	stats::report(archive);
+	
+	delete elite;
+	delete off;
+	
+	util::removeDominated(archive);
+	util::getPopulationX(xb, archive);
+	util::getPopulationFx(fxb, archive);
+	return archive.size();
+}
+
+int MultiObjectiveCompactDifferentialEvolution::solveScalar(double **xb, double **fxb, int nreal, int nobj, int maxEvaluations, int populationSize, double CR,
+				double F, int maxSurvival, double randomSeed, double **bounds, void (*function)(double *x, double *fx)) {
+	this->nreal = nreal;
+	this->nobj = nobj;
+	this->populationSize = populationSize;
+	this->function = function;
+	
+	double u[nreal];
+	double d[nreal];
+	double xr[nreal];
+	double xs[nreal];
+	double xt[nreal];
+	vector<Individual *> archive;
+	
+	initMOEADArchive(archive);
+	
+	// PV initialization
+	for (int i = 0; i < nreal; i++) {
+		u[i] = 0;
+		d[i] = 10;
+	}
+
+	Individual *off = new Individual(nreal, nobj);
+	double offNormX[nreal];
+	
+	Individual *elite = new Individual(nreal, nobj);
+	double eliteNormX[nreal];
+	sampleSolution(eliteNormX, u, d, nreal);
+	denormalizeSolution(elite->x, eliteNormX, bounds, nreal);
+
+	function(elite->x, elite->fx);
+	addToArchive(archive, elite, elite);
+	for (int k = 0; k < populationSize; k++) {
+		int quota = (k+1) * maxEvaluations / populationSize;
+		// PV re-initialization
+		for (int i = 0; i < nreal; i++) {
+			u[i] = 0;
+			d[i] = 10;
+		}
+			
+		while (benchmark::getEvaluations() < quota) {
+			/*
+			if (benchmark::getEvaluations() % 3000 == 0) {
+				cerr << "U: " << util::toString(u, nreal) << endl;
+				cerr << "D: " << util::toString(d, nreal) << endl;
+				cerr << "E: " << util::toString(eliteNormX, nreal) << endl << endl;
+			}
+			*/
+			stats::report(archive);
+			
+			sampleSolution(xr, u, d, nreal);
+			sampleSolution(xs, u, d, nreal);
+			sampleSolution(xt, u, d, nreal);
+			
+			for (int i = 0; i < nreal; i++) {
+				offNormX[i] = xt[i] + F*(xr[i] - xs[i]) + F*(eliteNormX[i] - xt[i]);
+				if (offNormX[i] < -1) {
+					offNormX[i] = -1;
+				} else if (offNormX[i] > 1) {
+					offNormX[i] = 1;
+				}
+			}
+			
+			// Crossover
+			for (int i = 0; i < nreal; i++)
+				if (!flip(CR))
+					offNormX[i] = eliteNormX[i];
+			
+			// Elite selection
+			denormalizeSolution(off->x, offNormX, bounds, nreal);
+			function(off->x, off->fx);
+			updateIdeal(off->fx);
+			
+			double *winner = eliteNormX;
+			double *loser = offNormX;
+			double f1 = chebyshevScalarizing(elite->fx, L[k]);
+			double f2 = chebyshevScalarizing(off->fx, L[k]);
+			bool replaceElite = false;
+			if (f1 > f2) {
+				addToArchive(archive, off, elite);
+				winner = offNormX;
+				loser = eliteNormX;
+				replaceElite = true;
+			} else if (addToArchive(archive, off, elite)) {
+//				winner = offNormX;
+//				loser = eliteNormX;
+//				replaceElite = true;
+			}
+				
+			// PV update
+			for (int i = 0; i < nreal; i++) {
+				double u2 = u[i] + (winner[i] - loser[i]) / populationSize;
+				u2 = max(u2, -1.0);
+				u2 = min(u2, 1.0);
+				double d2 = sqrt(fabs(d[i]*d[i] + u[i]*u[i] - u2*u2 + 
+						(winner[i]*winner[i] - loser[i]*loser[i]) / populationSize));
+				
+				u[i] = u2;
+				d[i] = d2;
+			}
+			
+			if (replaceElite) {
+				elite->copy(off);
+				for (int i = 0; i < nreal; i++)
+					eliteNormX[i] = offNormX[i];
+			}
 		}
 	}
 	stats::report(archive);

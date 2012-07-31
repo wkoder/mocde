@@ -18,7 +18,7 @@ void zdt1(double *xreal, double *obj) {
 	int i;
 	f1 = xreal[0];
 	g = 0.0;
-	for (i = 1; i < 30; i++) {
+	for (i = 1; i < nreal; i++) {
 		g += xreal[i];
 	}
 	g = 9.0 * g / 29.0;
@@ -41,7 +41,7 @@ void zdt2(double *xreal, double *obj) {
 	int i;
 	f1 = xreal[0];
 	g = 0.0;
-	for (i = 1; i < 30; i++) {
+	for (i = 1; i < nreal; i++) {
 		g += xreal[i];
 	}
 	g = 9.0 * g / 29.0;
@@ -64,7 +64,7 @@ void zdt3(double *xreal, double *obj) {
 	int i;
 	f1 = xreal[0];
 	g = 0.0;
-	for (i = 1; i < 30; i++) {
+	for (i = 1; i < nreal; i++) {
 		g += xreal[i];
 	}
 	g = 9.0 * g / 29.0;

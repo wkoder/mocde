@@ -13,6 +13,7 @@
 //#define MOEAD_IMPL
 //#define MY_MOEAD_IMPL
 #define MOCDE_IMPL
+//#define MOCDE_SCALAR
 //#define PAES_IMPL
 //#define NSGA2_IMPL
 
@@ -20,6 +21,8 @@
 
 //#define RESAMPLING // If boundary constraint is being handled by re-sampling the individual, otherwise projection is used
 #define RAND_BEST_1
+//#define RAND_BEST_2
+//#define RAND_1
 //#define OUTPUT_INTERVAL 5000
 #define OUTPUT_INTERVAL 1e9
 

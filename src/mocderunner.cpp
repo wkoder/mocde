@@ -48,7 +48,12 @@ int solve(double **xs, double **fxs, int nreal, int nobj, int maxEvaluations, in
 	
 #ifdef MOCDE_IMPL
 	MultiObjectiveCompactDifferentialEvolution de;
+
+#ifdef MOCDE_SCALAR
+	return de.solveScalar(xs, fxs, nreal, nobj, maxEvaluations, populationSize, CR, F, maxSurvival, randomSeed, bounds, benchmark::evaluate);
+#else
 	return de.solve(xs, fxs, nreal, nobj, maxEvaluations, populationSize, CR, F, maxSurvival, randomSeed, bounds, benchmark::evaluate);
+#endif
 #endif
 #ifdef PAES_IMPL
 #ifdef JMETAL
@@ -63,7 +68,7 @@ int solve(double **xs, double **fxs, int nreal, int nobj, int maxEvaluations, in
 #endif
 #ifdef MOEAD_IMPL
 	seed = (int)(randomSeed * (1 << 30));
-	rnd_uni_init = 90.0;
+	rnd_uni_init = (long)(randomSeed * (1L << 30));
 	int nicheSize = nobj == 2 ? 100 : 150;
 	int updateLimit = nicheSize / 10;
 	

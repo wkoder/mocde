@@ -9,8 +9,10 @@
 #define BENCHMARK_H_
 
 #include <string>
+#include <vector>
 
 using namespace std;
+
 
 namespace benchmark {
 	void setup(char *instanceName, int nreal, int *nobj);

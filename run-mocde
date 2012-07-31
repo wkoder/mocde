@@ -1,3 +1,6 @@
 #! /bin/bash
 
-./test/test.py -n mocde-$3 -e $1 -p 100 -m 0.9 -c 0.3 -r $2 -l $3 --exe ./bin/mocde "*"
+./test/test.py -n mocde$3 -e $1 -r $2 -p 100 -d 0.9 -c 0.3 -l 0 --exe ./bin/mocde "*"
+#./test/test.py -n mocde-rand1 -e $1 -r $2 -p 100 -d 0.9 -c 0.9 -l 0 --exe ./bin/mocde-rand1 "*"
+#./test/test.py -n mocde-randbest1 -e 300000 -r 10 -p 100 -d 0.9 -c 0.3 -l 0 --exe ./bin/mocde-randbest1 "*"
+#./test/test.py -n mocde-randbest2 -e 300000 -r 10 -p 100 -d 0.9 -c 0.3 -l 0 --exe ./bin/mocde-randbest2 "*"

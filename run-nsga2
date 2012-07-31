@@ -1,3 +1,3 @@
 #! /bin/bash
 
-./test/test.py -n nsga2-$1 -r $2 -p 100 -e $1 -m 0.9 -c 0.3 --exe ./bin/nsga2 "*"
+./test/test.py -n nsga2$3 -e $1 -r $2 -p 100 -m 0.9 -c 0.3 --exe ./bin/nsga2 "*"

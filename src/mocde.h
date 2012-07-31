@@ -22,6 +22,8 @@ public:
 	
 	int solve(double **xs, double **fxs, int n, int m, int maxEvaluations, int populationSize, double CR,
 				double F, int maxSurvival, double randomSeed, double **bounds, void (*function)(double *x, double *fx));
+	int solveScalar(double **xs, double **fxs, int n, int m, int maxEvaluations, int populationSize, double CR,
+					double F, int maxSurvival, double randomSeed, double **bounds, void (*function)(double *x, double *fx));
 
 	int nobj;
 	void (*function)(double *x, double *fx);

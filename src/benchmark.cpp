@@ -24,14 +24,17 @@
 using namespace benchmark;
 using namespace CEC09;
 
+
 int nobj = 0;
 int nreal = 0;
-long rnd_uni_init = 90;
-int seed = 177;
+
 vector <double> idealpoint;
 double scale[100];
 double lowBound = 0;
 double uppBound = 0;
+
+long rnd_uni_init;
+int seed;
 int etax = 20;
 int etam = 20;
 double real;
@@ -112,11 +115,11 @@ void benchmark::setup(char *functionName, int _nreal, int *_nobj) {
 	else if (strcmp(functionName, "kursawe") == 0)
 		fsetup(kursawe, 2, -5, 5);
 	else if (strcmp(functionName, "wfg1") == 0)
-		fsetup(wfg1, 2, 0, 0, 2, 2*real);
+		fsetup(wfg1, 2, 0, 0, 2, 2*nreal);
 	else if (strcmp(functionName, "wfg2") == 0)
-		fsetup(wfg2, 2, 0, 0, 2, 2*real);
+		fsetup(wfg2, 2, 0, 0, 2, 2*nreal);
 	else if (strcmp(functionName, "wfg6") == 0)
-		fsetup(wfg6, 2, 0, 0, 2, 2*real);
+		fsetup(wfg6, 2, 0, 0, 2, 2*nreal);
 	else if (strcmp(functionName, "dtlz1") == 0)
 		fsetup(dtlz1, 3, 0, 1);
 	else if (strcmp(functionName, "dtlz2") == 0)
