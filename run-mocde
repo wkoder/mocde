@@ -1,6 +1,12 @@
 #! /bin/bash
 
-./test/test.py -n mocde$3 -e $1 -r $2 -p 100 -d 0.9 -c 0.3 -l 0 --exe ./bin/mocde "*"
-#./test/test.py -n mocde-rand1 -e $1 -r $2 -p 100 -d 0.9 -c 0.9 -l 0 --exe ./bin/mocde-rand1 "*"
-#./test/test.py -n mocde-randbest1 -e 300000 -r 10 -p 100 -d 0.9 -c 0.3 -l 0 --exe ./bin/mocde-randbest1 "*"
-#./test/test.py -n mocde-randbest2 -e 300000 -r 10 -p 100 -d 0.9 -c 0.3 -l 0 --exe ./bin/mocde-randbest2 "*"
+R=$1
+D=1.0
+C=0.1
+MOCDE=mocde-randbest1
+NAME=mocde #-$D-$C
+FUNCTIONS="zdt4 dtlz1 dtlz3"
+#FUNCTIONS="zdt* dtlz* uf*"
+
+./test/test.py -n $NAME -r $R -p 100 -d $D -c $C -l 0 --exe ./bin/$MOCDE $FUNCTIONS
+

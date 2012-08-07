@@ -1,6 +1,8 @@
 #! /bin/bash
 
-./run-mocde 300000 20 40
-./run-mocde 300000 20 60
-./run-mocde 300000 20 80
-./run-mocde 300000 20 100
+E=300000
+R=10
+
+./run-mocde $E $R 0.7 0.0
+./run-mocde $E $R 1.2 0.0
+./run-mocde $E $R 1.0 0.0

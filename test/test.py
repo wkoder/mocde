@@ -20,32 +20,32 @@ class MOCDETest():
     __RESULTS__ = "results/history"
     __DB__ = "test_runs.db"
     __TESTS__ = [
-                 ["deb2", 2, 2],
-                 ["deb3", 2, 2],
-                 ["fonseca2", 5, 2],
-                 ["kursawe", 3, 2],
-                 ["zdt1", 30, 2],
-                 ["zdt2", 30, 2],
-                 ["zdt3", 30, 2],
-                 ["zdt4", 10, 2],
-                 ["zdt6", 10, 2],
-                 ["uf1", 30, 2],
-                 ["uf2", 30, 2],
-                 ["uf3", 30, 2],
-                 ["uf4", 30, 2],
-                 ["uf5", 30, 2],
-                 ["uf6", 30, 2],
-                 ["uf7", 30, 2],
-                 ["uf8", 30, 3],
-                 ["uf9", 30, 3],
-                 ["uf10", 30, 3],
-                 ["dtlz1", 12, 3],
-                 ["dtlz2", 12, 3],
-                 ["dtlz3", 12, 3],
-                 ["dtlz4", 12, 3],
-                 ["dtlz5", 12, 3],
-                 ["dtlz6", 12, 3],
-                 ["dtlz7", 22, 3],
+                 ["deb2", 2, 2, 20000],
+                 ["deb3", 2, 2, 20000],
+                 ["fonseca2", 5, 2, 20000],
+                 ["kursawe", 3, 2, 20000],
+                 ["zdt1", 30, 2, 20000],
+                 ["zdt2", 30, 2, 20000],
+                 ["zdt3", 30, 2, 20000],
+                 ["zdt4", 10, 2, 20000],
+                 ["zdt6", 10, 2, 20000],
+                 ["uf1", 30, 2, 300000],
+                 ["uf2", 30, 2, 300000],
+                 ["uf3", 30, 2, 300000],
+                 ["uf4", 30, 2, 300000],
+                 ["uf5", 30, 2, 300000],
+                 ["uf6", 30, 2, 300000],
+                 ["uf7", 30, 2, 300000],
+                 ["uf8", 30, 3, 300000],
+                 ["uf9", 30, 3, 300000],
+                 ["uf10", 30, 3, 300000],
+                 ["dtlz1", 12, 3, 20000],
+                 ["dtlz2", 12, 3, 20000],
+                 ["dtlz3", 12, 3, 20000],
+                 ["dtlz4", 12, 3, 20000],
+                 ["dtlz5", 12, 3, 20000],
+                 ["dtlz6", 12, 3, 20000],
+                 ["dtlz7", 22, 3, 20000],
                  ]
     
     def __init__(self, name):
@@ -67,25 +67,36 @@ class MOCDETest():
             pass
         
     def _addDBRun(self, function, runningTime, startTime):
-        cur = self.db.cursor()
-        cur.execute("INSERT INTO runs (function, running_time, start_time) VALUES ('%s', %f, '%s')" % (function, runningTime, startTime))
-        self.db.commit()
+        try:
+            cur = self.db.cursor()
+            cur.execute("INSERT INTO runs (function, running_time, start_time) VALUES ('%s', %f, '%s')" % (function, runningTime, startTime))
+            self.db.commit()
+        except:
+            pass
             
     def _clearDBRuns(self, function):
-        cur = self.db.cursor()
-        cur.execute("DELETE FROM runs WHERE function LIKE '%s'" % (function))
-        self.db.commit()
+        try:
+            cur = self.db.cursor()
+            cur.execute("DELETE FROM runs WHERE function LIKE '%s'" % (function))
+            self.db.commit()
+        except:
+            pass
         
     def _calculateETC(self, function):
-        cur = self.db.cursor()
-        cur.execute("SELECT AVG(running_time) FROM runs WHERE function LIKE '%s' GROUP BY function" % (function))
-        data = cur.fetchone()
+        data = None
+        try:
+            cur = self.db.cursor()
+            cur.execute("SELECT AVG(running_time) FROM runs WHERE function LIKE '%s' GROUP BY function" % (function))
+            data = cur.fetchone()
+        except:
+            pass
+            
         return None if data is None else data[0]
         
     def _calculateTestsETC(self, functions):
         return map(self._calculateETC, functions)
         
-    def testFunctions(self, exe, functions, times, populationSize, maxEvaluations, mutationRate, crossoverProbability, elitism):
+    def testFunctions(self, exe, functions, times, populationSize, mutationRate, crossoverProbability, elitism):
         tests = []
         for test in MOCDETest.__TESTS__:
             if True in [self.testMatches(function, test[0], test[2]) for function in functions]:
@@ -103,7 +114,7 @@ class MOCDETest():
                 etcRemainingSum = sum(etcRemaining)
             print "Testing %s (%d/%d), test ETC: %s, remaining tests ETC: %s" % (test[0], i+1, len(tests), \
                          self._strETC(etcAll[i], times), self._strETC(etcRemainingSum, times))
-            self.testFunction(exe, test[0], test[1], test[2], times, populationSize, maxEvaluations, mutationRate, crossoverProbability, elitism)
+            self.testFunction(exe, test[0], test[1], test[2], times, populationSize, test[3], mutationRate, crossoverProbability, elitism)
             self._printBars()
             i += 1
             
@@ -186,7 +197,7 @@ if __name__ == '__main__':
     parser.add_argument("--name", "-n", help="run name")
     parser.add_argument("--runs", "-r", type=int, help="number of times to run the tests")
     parser.add_argument("--population", "-p", type=int, help="population size")
-    parser.add_argument("--evaluations", "-e", type=int, help="maximum number of evaluations")
+    #parser.add_argument("--evaluations", "-e", type=int, help="maximum number of evaluations")
     parser.add_argument("--mutation", "-m", "--differential", "-d", type=float,  \
                         help="mutation rate / differential variation")
     parser.add_argument("--crossover", "-c", type=float, help="crossover probability")
@@ -195,6 +206,6 @@ if __name__ == '__main__':
     args = parser.parse_args()
     
     test = MOCDETest(args.name)
-    test.testFunctions(args.exe, args.functions, args.runs, args.population, args.evaluations, args.mutation, args.crossover, 
+    test.testFunctions(args.exe, args.functions, args.runs, args.population, args.mutation, args.crossover, 
                        args.elitism)
     

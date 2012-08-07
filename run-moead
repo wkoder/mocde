@@ -1,3 +1,6 @@
 #! /bin/bash
 
-./test/test.py -n moead$3 -e $1 -r $2 -p 100 -m 0.9 -c 0.3 --exe ./bin/moead "*"
+FUNCTIONS="zdt4 dtlz1 dtlz3"
+#FUNCTIONS="zdt* dtlz* uf*"
+
+./test/test.py -n moead -r $1 -p 100 -m 0.9 -c 0.3 --exe ./bin/moead $FUNCTIONS
